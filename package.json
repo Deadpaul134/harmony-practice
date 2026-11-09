@@ -2,6 +2,6 @@
   "name": "harmony-practice",
   "private": true,
   "scripts": {
-    "test": "node tests/logic.test.js"
+    "test": "node tests/logic.test.js && node tests/game-core.test.js && node tests/game-sync.test.js"
   }
 }

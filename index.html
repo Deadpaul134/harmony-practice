@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>תרגול הרמוניה א'</title>
+<title>הַרְמוֹנָה – תרגול הרמוניה</title>
 <meta name="theme-color" content="#0f1216">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -520,11 +520,148 @@ td.num, td:has(.n) {
   .prompt .big { font-size: 24px; }
   .kb { height: 140px; }
 }
+
+/* ---- Harmona game layer (console dark) ---- */
+.app-shell { min-height: 100vh; padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box; }
+.screen[hidden] { display: none !important; }
+.side {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  display: flex; flex-direction: column; align-items: stretch;
+  padding: 0 8px calc(6px + env(safe-area-inset-bottom, 0px));
+  background: var(--card); border-top: 1px solid var(--line);
+  box-shadow: 0 -2px 12px rgba(0,0,0,.3);
+  /* keep above iOS home indicator / browser chrome */
+  padding-bottom: max(6px, env(safe-area-inset-bottom, 0px));
+}
+.nav {
+  display: flex; justify-content: space-around; align-items: stretch; gap: 2px;
+  width: min(720px, 100%); margin: 0 auto;
+}
+.nav-i {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 2px; border-radius: 6px; text-decoration: none; color: var(--muted-t);
+  font-size: 13px; font-weight: 600; min-height: 56px; justify-content: center; flex: 1; max-width: 200px;
+  border: 0; background: transparent; font-family: inherit; cursor: pointer;
+}
+.nav-i svg { width: 22px; height: 22px; }
+.nav-i.on { color: var(--accent-t); background: var(--accent-soft); font-weight: 700; box-shadow: inset 0 3px 0 var(--accent); }
+.nav-i:hover { color: var(--text); }
+.hud {
+  display: flex; flex-wrap: nowrap; gap: 8px; align-items: center; justify-content: space-between;
+  margin-bottom: 4px; width: 100%;
+}
+.hud-stats { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-width: 0; flex: 1; }
+.hud-chip {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 4px 12px;
+  border-radius: 6px; background: var(--card); border: 1px solid var(--line); font-size: 13px;
+  box-shadow: var(--shadow); color: var(--muted-t);
+}
+.hud-chip b { font-family: var(--mono); color: var(--accent-t); font-variant-numeric: tabular-nums; }
+.mute-btn {
+  width: 44px; height: 44px; border-radius: 6px; border: 1px solid var(--line2);
+  background: var(--card2); color: var(--muted-t); display: grid; place-items: center; cursor: pointer;
+  flex: none; margin-inline-start: auto;
+}
+.mute-btn.on { color: var(--accent-t); border-color: var(--accent); background: var(--accent-soft); }
+.combo {
+  display: flex; align-items: center; gap: 10px; align-self: center;
+  min-height: 40px; padding: 4px 14px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--card2); width: min(360px, 100%);
+}
+.combo b { font-size: 18px; color: var(--accent-t); font-family: var(--mono); }
+.combo .bar { flex: 1; height: 8px; border-radius: 2px; background: var(--bg2); box-shadow: inset 0 1px 2px rgba(0,0,0,.3); overflow: hidden; }
+.combo .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent2), var(--accent)); border-radius: 2px; transition: width .2s; }
+.combo.hot { border-color: var(--accent); box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 30%, transparent); }
+.combo.bump b { animation: mt-pop .4s cubic-bezier(.2,1.6,.4,1); }
+.xp-float {
+  position: absolute; top: -4px; left: 50%; transform: translateX(-50%);
+  font-family: var(--mono); font-weight: 800; font-size: 16px; color: var(--good-t);
+  pointer-events: none; animation: mt-up 1.6s ease-out forwards; white-space: nowrap; z-index: 5;
+}
+.fb { position: relative; }
+.fb .cheer { color: var(--good-t); font-weight: 700; }
+@keyframes mt-pop { 0%{transform:scale(.92)} 60%{transform:scale(1.12)} 100%{transform:scale(1)} }
+@keyframes mt-up { from{opacity:1;transform:translate(-50%,0)} to{opacity:0;transform:translate(-50%,-28px)} }
+@keyframes mt-shake { 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
+.choice.bad, .kb .key.bad { animation: mt-shake .4s ease 1; }
+.hello h1 { font-size: clamp(28px, 6vw, 36px); margin: 0 0 6px; }
+.hello .lead { color: var(--muted-t); margin: 0 0 16px; }
+.goal-bar { height: 10px; border-radius: 2px; background: var(--bg2); box-shadow: inset 0 1px 2px rgba(0,0,0,.3); overflow: hidden; }
+.goal-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent)); width: 0; transition: width .25s; }
+.btn.xl { min-height: 56px; width: 100%; font-size: 17px; }
+.btn.sm { min-height: 44px; padding: 8px 16px; }
+.topic-grid { display: grid; gap: 10px; grid-template-columns: 1fr; }
+@media (min-width: 560px) { .topic-grid { grid-template-columns: 1fr 1fr 1fr; } }
+.topic-card {
+  text-align: start; border: 1px solid var(--line); background: var(--card); border-radius: var(--radius);
+  padding: 14px; cursor: pointer; color: inherit; font: inherit; box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: 6px; min-height: 96px;
+}
+.topic-card:hover { border-color: var(--accent); }
+.topic-card b { font-size: 17px; }
+.topic-card span { color: var(--muted-t); font-size: 13px; }
+.prog-meta { color: var(--muted-t); font-size: 14px; }
+.hist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.hist li {
+  display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 10px 12px;
+  border: 1px solid var(--line); border-radius: 6px; background: var(--card2); font-size: 14px;
+}
+.hist .kind { font-weight: 700; }
+.hist .empty { color: var(--muted-t); border-style: dashed; }
+.chart { min-height: 120px; }
+.chart svg { width: 100%; height: auto; display: block; }
+.chart .gl { stroke: var(--line); stroke-width: 1; }
+.chart .gl.th { stroke: var(--accent); stroke-opacity: .35; }
+.chart .ln { fill: none; stroke: var(--accent); stroke-width: 2.5; }
+.chart .pt { fill: var(--accent); }
+.chart .ax { fill: var(--muted-t); font-size: 10px; font-family: var(--mono); }
+.mod-row { display: flex; flex-direction: column; gap: 8px; }
+.mod-row .row-item {
+  display: flex; justify-content: space-between; gap: 10px; align-items: center;
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--card2);
+}
+.mod-row .pct { font-family: var(--mono); color: var(--accent-t); font-weight: 700; }
+.sum-big { font-size: 42px; font-weight: 800; font-family: var(--mono); color: var(--accent-t); margin: 8px 0; }
+.sum-streak { display: flex; align-items: center; gap: 8px; font-size: 16px; }
+.celeb {
+  position: fixed; inset: 0; pointer-events: none; z-index: 50; overflow: hidden;
+}
+.celeb i {
+  position: absolute; top: -10px; width: 8px; height: 8px; border-radius: 2px;
+  background: var(--accent); animation: fall 1.2s linear forwards;
+}
+@keyframes fall { to { transform: translateY(110vh) rotate(220deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .xp-float, .combo.bump b, .choice.bad, .kb .key.bad, .celeb i { animation: none !important; }
+}
+
 </style>
 </head>
 <body>
 
-<div class="wrap" dir="rtl">
+
+<div class="app-shell" dir="rtl">
+<section class="screen wrap" id="screen-home" data-screen="home">
+  <div class="hud" id="homeHud"></div>
+  <header class="hello">
+    <h1 id="homeTitle">שלום</h1>
+    <p class="lead" id="homeLead">כמה דקות של הרמוניה — מרווחים, מודוסים ודרגות.</p>
+  </header>
+  <div class="card">
+    <div class="qhead"><span>מטרה יומית</span><b id="homeGoalLabel">0/25</b></div>
+    <div class="goal-bar" id="homeGoalBar"><i id="homeGoalFill"></i></div>
+    <p class="hint" id="homeGoalMeta" style="text-align:start;margin-top:8px"></p>
+    <button type="button" class="btn xl" id="startPractice">התחל תרגול</button>
+  </div>
+  <div class="topic-grid" id="homeTopics"></div>
+  <div class="card" id="homeWeak" hidden>
+    <div class="qhead"><span>כדאי לחזק</span></div>
+    <p id="homeWeakText" class="hint" style="text-align:start"></p>
+  </div>
+</section>
+
+<section class="screen wrap" id="screen-practice" data-screen="practice" hidden>
+
   <header>
     <div>
       <div class="brand-row">
@@ -535,8 +672,8 @@ td.num, td:has(.n) {
           </svg>
         </div>
         <div class="brand-text">
-          <b>Mentora</b>
-          <span>תרגול הרמוניה · קונסולה</span>
+          <b>הַרְמוֹנָה</b>
+          <span>משפחת מנטורה · תרגול הרמוניה</span>
         </div>
       </div>
       <h1>תרגול הרמוניה א'</h1>
@@ -573,8 +710,68 @@ td.num, td:has(.n) {
     <summary>טבלת עזר: המודוסים</summary>
     <div class="tbl"><table id="modetable"></table></div>
   </details>
+</section>
+
+<section class="screen wrap" id="screen-summary" data-screen="summary" hidden>
+  <div class="card" style="text-align:center;align-items:center">
+    <h1 style="font-size:28px;margin:0">סיכום סט</h1>
+    <div class="sum-big" id="sumPts">+0</div>
+    <p class="hint" id="sumAcc" style="margin:0"></p>
+    <div class="sum-streak" id="sumStreak" hidden><span aria-hidden="true">🔥</span><span></span></div>
+    <div class="btnrow" style="margin-top:16px;width:100%">
+      <button type="button" class="btn" id="sumAgain">עוד סט</button>
+      <button type="button" class="btn ghost" id="sumHome">לבית</button>
+      <button type="button" class="btn ghost" id="sumProg">להתקדמות</button>
+    </div>
+  </div>
+</section>
+
+<section class="screen wrap" id="screen-progress" data-screen="progress" hidden>
+  <div class="scr-h" style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
+    <h1 style="margin:0;font-size:28px">התקדמות</h1>
+    <span class="prog-meta" id="progMeta"></span>
+  </div>
+  <div class="hud" id="progHud"></div>
+  <div class="card">
+    <div class="qhead"><span>מטרה יומית</span><b id="progGoalLabel">0/25</b></div>
+    <div class="goal-bar" id="progGoalBar"><i id="progGoalFill"></i></div>
+    <p class="hint" id="progGoalMeta" style="text-align:start;margin-top:8px"></p>
+  </div>
+  <div class="card">
+    <div class="qhead"><span>לפי נושא</span></div>
+    <div class="mod-row" id="progTopics"></div>
+  </div>
+  <div class="card">
+    <div class="qhead"><span>דיוק ב־14 הימים האחרונים</span></div>
+    <div class="chart" id="accChart"></div>
+  </div>
+  <div class="card">
+    <div class="qhead"><span>סטים אחרונים</span></div>
+    <ol class="hist" id="hist"></ol>
+  </div>
+</section>
+
+<aside class="side" aria-label="ניווט ראשי">
+  <nav class="nav">
+    <button type="button" class="nav-i" data-route="home" id="nav-home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+      <span>בית</span>
+    </button>
+    <button type="button" class="nav-i" data-route="practice" id="nav-practice">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>
+      <span>תרגול</span>
+    </button>
+    <button type="button" class="nav-i" data-route="progress" id="nav-progress">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+      <span>התקדמות</span>
+    </button>
+  </nav>
+</aside>
 </div>
 
+
+<script src="js/game-core.js"></script>
+<script src="js/game-audio.js"></script>
 <script>
 (() => {
   // ---------- music core ----------
@@ -784,8 +981,10 @@ td.num, td:has(.n) {
 
   // ---------- storage ----------
   const KEY = 'harmony-practice-v1';
-  let st = { topic: 'intervals', type: {}, level: 1, stats: {} };
-  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) st = Object.assign(st, s); } catch (e) {}
+  let st = (window.HP && HP.core)
+    ? HP.core.migrateState((() => { try { return JSON.parse(localStorage.getItem(KEY)); } catch (e) { return null; } })())
+    : { topic: 'intervals', type: {}, level: 1, stats: {}, points: 0, streak: { current: 0, best: 0, lastDay: null, freezes: 1 }, days: {}, log: [], mute: false, run: 0, session: null };
+  try { /* already migrated */ } catch (e) {}
   // cloud sync hooks, filled in by the sign-in module below when it loads
   const sync = { onSave: null, onRec: null, onReset: null, signedIn: false };
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} if (sync.onSave) sync.onSave(); };
@@ -827,7 +1026,7 @@ td.num, td:has(.n) {
     const rb = $('reset');
     if (rb) rb.onclick = () => {
       $('resetwrap').innerHTML = `למחוק את כל ההתקדמות? <button class="linkbtn" id="rs-yes">כן, למחוק</button> · <button class="linkbtn" id="rs-no">ביטול</button>`;
-      $('rs-yes').onclick = () => { st.stats = {}; if (sync.onReset) sync.onReset(); save(); renderTypes(); renderStats(); };
+      $('rs-yes').onclick = () => { st.stats = {}; st.points = 0; st.streak = { current: 0, best: 0, lastDay: null, freezes: 1, freezeWeek: null }; st.days = {}; st.log = []; st.run = 0; st.session = null; if (sync.onReset) sync.onReset(); save(); renderTypes(); renderStats(); if (window.HPGame) { HPGame.refreshHud(); } };
       $('rs-no').onclick = renderStats;
     };
   }
@@ -851,11 +1050,29 @@ td.num, td:has(.n) {
   function finish(ok, html) {
     done = true;
     rec(typeObj.id, ok);
-    $('feedback').innerHTML = `<div class="fb ${ok ? 'ok' : 'bad'}"><h3>${ok ? 'נכון' : 'לא נכון'}</h3><p>${html}</p></div>`;
-    $('actions').innerHTML = `<button class="btn" id="next">השאלה הבאה</button>`;
-    $('next').onclick = next;
+    const award = (window.HPGame && HPGame.onAnswer)
+      ? HPGame.onAnswer({ ok, typeId: typeObj.id, topic: st.topic })
+      : null;
+    const pts = award && award.pts ? award.pts : 0;
+    const cheer = ok
+      ? (award && award.run >= 5 ? `רצף ${award.run}!` : 'כל הכבוד!')
+      : '';
+    const xpBit = ok && pts ? `<span class="xp-float" aria-hidden="true">+${pts} XP</span>` : '';
+    const title = ok
+      ? `<span class="cheer">${cheer}</span>${pts ? ` <b dir="ltr">+${pts}</b>` : ''}`
+      : 'לא נכון';
+    $('feedback').innerHTML = `<div class="fb ${ok ? 'ok' : 'bad'}">${xpBit}<h3>${title}</h3><p>${html}</p></div>`;
+    const cont = (award && award.sessionDone)
+      ? `<button class="btn" id="next">לסיכום הסט</button>`
+      : `<button class="btn" id="next">השאלה הבאה</button>`;
+    $('actions').innerHTML = cont;
+    $('next').onclick = () => {
+      if (award && award.sessionDone && window.HPGame) HPGame.showSummary();
+      else next();
+    };
     $('next').focus({ preventScroll: true });
     renderTypes(); renderStats();
+    if (window.HPGame) HPGame.refreshHud();
   }
 
   function next() {
@@ -955,10 +1172,15 @@ td.num, td:has(.n) {
     persist: () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} },
     refresh: () => { renderTabs(); renderTypes(); renderLevels(); renderStats(); },
     renderAll: () => { if (!EX[st.topic]) st.topic = 'intervals'; if (![1, 2, 3].includes(st.level)) st.level = 1; renderAll(); },
+    setTopic(t) { st.topic = t; if (!st.type[t] || !EX[t].types.find(x => x.id === st.type[t])) st.type[t] = EX[t].types[0].id; save(); },
+    EX,
   };
+  window.HPDrill = window.__hp;
   renderAll();
+  if (window.HPGame) HPGame.init();
 })();
 </script>
+<script src="js/game-ui.js"></script>
 <script type="module">
 // Google sign-in + progress sync (Firebase Auth + Firestore, one doc per user: users/{uid}).
 // Signed out, nothing here runs except the sign-in button. Stats go up as increments,
@@ -1010,6 +1232,35 @@ function applyCloud() {
 
 function prefs() { const s = hp.st; return { topic: s.topic, type: s.type, level: s.level }; }
 
+function gamePayload() {
+  const C = window.HP && HP.core;
+  if (!C) return null;
+  return C.gameSnapshot(hp.st);
+}
+
+function mergeGameFromCloud(d) {
+  const C = window.HP && HP.core;
+  if (!C || !d) return;
+  const merged = C.mergeGame(hp.st, {
+    points: d.points,
+    streak: d.streak,
+    days: d.days,
+    log: d.log,
+  });
+  hp.st.points = merged.points;
+  hp.st.streak = merged.streak;
+  hp.st.days = merged.days;
+  hp.st.log = merged.log;
+  hp.persist();
+  if (window.HPGame) {
+    if (HPGame.refreshHud) HPGame.refreshHud();
+    if (HPGame.renderHome && location.hash.replace(/^#/, '') === 'home') HPGame.renderHome();
+    if (HPGame.renderProgress && location.hash.replace(/^#/, '') === 'progress') HPGame.renderProgress();
+  }
+}
+
+let gameSyncEnabled = true; /* flips false if rules reject game fields */
+
 function schedule(ms = 800) { clearTimeout(timer); timer = setTimeout(flush, ms); }
 function flush() {
   if (!user || !prefsLoaded) return Promise.resolve();
@@ -1020,13 +1271,33 @@ async function doFlush() {
   const uidAtStart = user.uid, genAtStart = gen;
   try {
     if (meta.reset) {
-      await setDoc(ref, { stats: {}, updated: serverTimestamp() }, { mergeFields: ['stats', 'updated'] });
+      const wipe = { stats: {}, updated: serverTimestamp() };
+      if (gameSyncEnabled) Object.assign(wipe, { points: 0, streak: { current: 0, best: 0, lastDay: null, freezes: 1, freezeWeek: null }, days: {}, log: [] });
+      try {
+        await setDoc(ref, wipe, { mergeFields: Object.keys(wipe) });
+      } catch (e) {
+        if (e && (e.code === 'permission-denied' || String(e.message || '').includes('permission'))) {
+          gameSyncEnabled = false;
+          await setDoc(ref, { stats: {}, updated: serverTimestamp() }, { mergeFields: ['stats', 'updated'] });
+        } else throw e;
+      }
       meta.reset = false; saveMeta();
     }
     inflight = JSON.parse(JSON.stringify(meta.pending));
     const stats = {};
     for (const [id, s] of Object.entries(inflight)) stats[id] = { r: increment(s.r), t: increment(s.t) };
-    await setDoc(ref, { ...prefs(), stats, updated: serverTimestamp() }, { merge: true });
+    const base = { ...prefs(), stats, updated: serverTimestamp() };
+    const game = gameSyncEnabled ? gamePayload() : null;
+    const payload = game ? { ...base, ...game } : base;
+    try {
+      await setDoc(ref, payload, { merge: true });
+    } catch (e) {
+      /* Rules not yet updated: keep syncing classic fields only, silently. */
+      if (game && e && (e.code === 'permission-denied' || String(e.message || '').includes('permission'))) {
+        gameSyncEnabled = false;
+        await setDoc(ref, base, { merge: true });
+      } else throw e;
+    }
     if (user && user.uid === uidAtStart && gen === genAtStart) { meta.pending = add(meta.pending, inflight, -1);
       for (const [id, s] of Object.entries(meta.pending)) if (!s.r && !s.t) delete meta.pending[id];
       saveMeta(); }
@@ -1078,7 +1349,11 @@ async function doSignOut() {
   await flush(); await flush();
   // progress lives in the account now; this browser goes back to a clean local state
   meta = { uid: null, pending: {}, reset: false }; saveMeta();
-  hp.st.stats = {}; hp.persist();
+  hp.st.stats = {};
+  hp.st.points = 0;
+  hp.st.streak = { current: 0, best: 0, lastDay: null, freezes: 1, freezeWeek: null };
+  hp.st.days = {}; hp.st.log = []; hp.st.run = 0; hp.st.session = null;
+  hp.persist();
   await signOut(auth);
 }
 
@@ -1097,13 +1372,19 @@ onAuthStateChanged(auth, u => {
   render();
   unsub = onSnapshot(ref, snap => {
     const d = snap.data();
-    cloud = d ? { stats: d.stats || {} } : null;
+    cloud = d ? { stats: d.stats || {}, points: d.points, streak: d.streak, days: d.days, log: d.log } : null;
     if (!prefsLoaded) {
       prefsLoaded = true;
       if (d && d.topic) { const s = hp.st; s.topic = d.topic; s.type = Object.assign({}, s.type, d.type || {}); if (d.level) s.level = d.level; }
-      applyCloud(); hp.renderAll();
+      applyCloud();
+      mergeGameFromCloud(d);
+      hp.renderAll();
       schedule(0);
-    } else { applyCloud(); hp.refresh(); }
+    } else {
+      applyCloud();
+      mergeGameFromCloud(d);
+      hp.refresh();
+    }
   }, e => console.warn('sync read failed', e));
 });
 render();
