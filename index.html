@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>הַרְמוֹנָה – תרגול הרמוניה</title>
 <meta name="theme-color" content="#0f1216">
+<meta name="description" content="הַרְמוֹנָה – תרגול הרמוניה: מרווחים, מודוסים ודרגות כרומטיות.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="הרמונה">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icons/logo.svg" type="image/svg+xml">
+<link rel="icon" href="assets/icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap">
@@ -637,6 +646,24 @@ td.num, td:has(.n) {
   .xp-float, .combo.bump b, .choice.bad, .kb .key.bad, .celeb i { animation: none !important; }
 }
 
+
+.install-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; padding: 10px 18px; width: 100%;
+  border-radius: 6px; border: 0; cursor: pointer; font: inherit; font-weight: 700;
+  background: var(--accent-fill); color: var(--on-accent);
+  box-shadow: 0 0 0 1px var(--accent-fill), 0 0 16px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.install-btn[hidden] { display: none !important; }
+.install-btn:hover { background: var(--accent-fill2, #ffc24d); }
+.ios-hint {
+  margin: 0; padding: 12px 14px; border: 1px dashed var(--line2); border-radius: 6px;
+  background: var(--card2); color: var(--muted-t); font-size: 14px; line-height: 1.45;
+}
+.ios-hint[hidden] { display: none !important; }
+.ios-hint b { color: var(--accent-t); }
+.home-install { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+
 </style>
 </head>
 <body>
@@ -659,6 +686,14 @@ td.num, td:has(.n) {
   <div class="card" id="homeWeak" hidden>
     <div class="qhead"><span>כדאי לחזק</span></div>
     <p id="homeWeakText" class="hint" style="text-align:start"></p>
+  </div>
+  <div class="card home-install" id="installCard">
+    <div class="qhead"><span>שמירה במכשיר</span></div>
+    <button type="button" class="install-btn" id="installBtn" hidden aria-label="התקן את האפליקציה">התקן את האפליקציה</button>
+    <p class="ios-hint" id="iosInstallHint" hidden>
+      ב־iPhone/iPad: לחצו על <b>שיתוף</b> באפליקציית Safari ואז על <b>הוסף למסך הבית</b>.
+    </p>
+    <p class="hint" id="installDone" hidden style="text-align:start;margin:0">האפליקציה כבר מותקנת / רצה במסך מלא.</p>
   </div>
   <p class="home-legal" style="text-align:center;margin:8px 0 0">
     <a class="linkbtn" href="privacy.html" style="min-height:44px;display:inline-flex;align-items:center">מדיניות פרטיות</a>
@@ -1437,5 +1472,69 @@ onAuthStateChanged(auth, u => {
 });
 render();
 </script>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const installBtn = $("installBtn");
+  const iosHint = $("iosInstallHint");
+  const done = $("installDone");
+  let installEvt = null;
+
+  function isStandalone() {
+    return window.matchMedia("(display-mode: standalone)").matches
+      || window.navigator.standalone === true;
+  }
+  function isIos() {
+    const ua = navigator.userAgent || "";
+    const iOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    return iOS && !window.MSStream;
+  }
+
+  if (isStandalone()) {
+    if (installBtn) installBtn.hidden = true;
+    if (iosHint) iosHint.hidden = true;
+    if (done) done.hidden = false;
+  } else if (isIos() && iosHint) {
+    iosHint.hidden = false;
+  }
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    installEvt = e;
+    if (installBtn) installBtn.hidden = false;
+    if (iosHint) iosHint.hidden = true;
+  });
+  window.addEventListener("appinstalled", () => {
+    installEvt = null;
+    if (installBtn) installBtn.hidden = true;
+    if (done) { done.hidden = false; done.textContent = "האפליקציה הותקנה בהצלחה."; }
+  });
+  if (installBtn) {
+    installBtn.addEventListener("click", async () => {
+      if (!installEvt) return;
+      const ev = installEvt;
+      installEvt = null;
+      installBtn.hidden = true;
+      ev.prompt();
+      try {
+        const choice = await ev.userChoice;
+        if (choice && choice.outcome === "accepted" && done) {
+          done.hidden = false;
+          done.textContent = "האפליקציה הותקנה בהצלחה.";
+        } else if (choice && choice.outcome !== "accepted") {
+          installBtn.hidden = false;
+          installEvt = ev; // may not be reusable; leave button for next event
+        }
+      } catch (_) {}
+    });
+  }
+
+  if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+    navigator.serviceWorker.register("sw.js").catch(() => null);
+  }
+})();
+</script>
+
 </body>
 </html>
