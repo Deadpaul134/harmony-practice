@@ -129,6 +129,10 @@ details.ref summary { cursor: pointer; font-weight: 700; }
 table { border-collapse: collapse; width: 100%; font-size: 14px; }
 th, td { border-bottom: 1px solid var(--rule); padding: 5px 8px; text-align: start; }
 td.num { font-variant-numeric: tabular-nums; }
+.acct { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: 13px; color: var(--muted); }
+.acct .gbtn { font: inherit; font-size: 14px; font-weight: 700; border: 1.5px solid var(--rule); background: var(--card); color: var(--ink); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.acct .gbtn:hover { border-color: var(--accent); }
+.acct .who { color: var(--ink); font-weight: 500; }
 @media (prefers-reduced-motion: no-preference) {
   .fb { animation: rise .18s ease-out; }
   @keyframes rise { from { transform: translateY(4px); opacity: .4; } to { transform: none; opacity: 1; } }
@@ -144,6 +148,7 @@ td.num { font-variant-numeric: tabular-nums; }
       <p class="sub">מרווחים, מודוסים ודרגות כרומטיות · נבדק לפי שיטת הספר: כל שם שנשמע נכון מתקבל</p>
       <div class="staff" aria-hidden="true"></div>
     </div>
+    <div class="acct" id="acct" hidden></div>
   </header>
 
   <nav class="tabs" role="tablist" id="tabs"></nav>
@@ -387,8 +392,10 @@ td.num { font-variant-numeric: tabular-nums; }
   const KEY = 'harmony-practice-v1';
   let st = { topic: 'intervals', type: {}, level: 1, stats: {} };
   try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) st = Object.assign(st, s); } catch (e) {}
-  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
-  const rec = (id, ok) => { const s = st.stats[id] || (st.stats[id] = { r: 0, t: 0 }); s.t++; if (ok) s.r++; save(); };
+  // cloud sync hooks, filled in by the sign-in module below when it loads
+  const sync = { onSave: null, onRec: null, onReset: null, signedIn: false };
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} if (sync.onSave) sync.onSave(); };
+  const rec = (id, ok) => { const s = st.stats[id] || (st.stats[id] = { r: 0, t: 0 }); s.t++; if (ok) s.r++; if (sync.onRec) sync.onRec(id, ok); save(); };
   const pctOf = id => { const s = st.stats[id]; return s && s.t ? Math.round(100 * s.r / s.t) : null; };
 
   // ---------- UI ----------
@@ -422,11 +429,11 @@ td.num { font-variant-numeric: tabular-nums; }
     $('stats').innerHTML = t ? `<span>נענו <strong>${t}</strong></span><span>הצלחה <strong>${Math.round(100 * r / t)}%</strong></span>` +
       (weak && weak.s.r / weak.s.t < .85 ? `<span>כדאי לחזק: <strong>${weak.x.title}</strong> (${Math.round(100 * weak.s.r / weak.s.t)}%)</span>` : '') +
       `<span id="resetwrap"><button class="linkbtn" id="reset">איפוס התקדמות</button></span>`
-      : '<span>ההתקדמות נשמרת בדפדפן הזה בלבד.</span>';
+      : `<span>${sync.signedIn ? 'ההתקדמות נשמרת בחשבון שלך ועוברת בין מכשירים.' : 'ההתקדמות נשמרת בדפדפן הזה בלבד. התחברות שומרת אותה בין מכשירים.'}</span>`;
     const rb = $('reset');
     if (rb) rb.onclick = () => {
       $('resetwrap').innerHTML = `למחוק את כל ההתקדמות? <button class="linkbtn" id="rs-yes">כן, למחוק</button> · <button class="linkbtn" id="rs-no">ביטול</button>`;
-      $('rs-yes').onclick = () => { st.stats = {}; save(); renderTypes(); renderStats(); };
+      $('rs-yes').onclick = () => { st.stats = {}; if (sync.onReset) sync.onReset(); save(); renderTypes(); renderStats(); };
       $('rs-no').onclick = renderStats;
     };
   }
@@ -547,8 +554,165 @@ td.num { font-variant-numeric: tabular-nums; }
 
   document.addEventListener('keydown', e => { if (e.key === 'Enter' && done && $('next') && document.activeElement !== $('next')) next(); });
   window.__test = { EX, pc, nm, parse, spellIv, IV, MODES, spellMode, onLetter };
+  // bridge for the sign-in module
+  window.__hp = {
+    sync,
+    get st() { return st; },
+    persist: () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} },
+    refresh: () => { renderTabs(); renderTypes(); renderLevels(); renderStats(); },
+    renderAll: () => { if (!EX[st.topic]) st.topic = 'intervals'; if (![1, 2, 3].includes(st.level)) st.level = 1; renderAll(); },
+  };
   renderAll();
 })();
+</script>
+<script type="module">
+// Google sign-in + progress sync (Firebase Auth + Firestore, one doc per user: users/{uid}).
+// Signed out, nothing here runs except the sign-in button. Stats go up as increments,
+// so two devices answering at the same time never overwrite each other.
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signInWithRedirect, signOut }
+  from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
+import { getFirestore, doc, onSnapshot, setDoc, increment, serverTimestamp }
+  from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyAwsfxLOwzkq4txHswKvHcXaPeeO9Oh2cI', // public by design; access is enforced by firestore.rules
+  authDomain: 'concrete-spider-453418-s2.firebaseapp.com',
+  projectId: 'concrete-spider-453418-s2',
+  storageBucket: 'concrete-spider-453418-s2.firebasestorage.app',
+  messagingSenderId: '129630710222',
+  appId: '1:129630710222:web:834fe239cfe973a5efa39f',
+};
+
+const hp = window.__hp, sync = hp.sync;
+const box = document.getElementById('acct');
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app), db = getFirestore(app);
+
+// meta: which account this browser's progress belongs to, and answers not yet in the cloud
+const MKEY = 'harmony-practice-sync-v1';
+let meta = { uid: null, pending: {}, reset: false };
+try { const m = JSON.parse(localStorage.getItem(MKEY)); if (m) meta = Object.assign(meta, m); } catch (e) {}
+const saveMeta = () => { try { localStorage.setItem(MKEY, JSON.stringify(meta)); } catch (e) {} };
+
+let user = null, ref = null, unsub = null, cloud = null, prefsLoaded = false;
+let inflight = null, timer = null, flushing = null, gen = 0;
+
+const add = (a, b, sign = 1) => {
+  const out = JSON.parse(JSON.stringify(a || {}));
+  for (const [id, s] of Object.entries(b || {})) {
+    const o = out[id] || (out[id] = { r: 0, t: 0 });
+    o.r += sign * s.r; o.t += sign * s.t;
+  }
+  return out;
+};
+const unsent = () => inflight ? add(meta.pending, inflight, -1) : meta.pending;
+
+// local view = what the cloud has (incl. writes on their way) + answers not yet sent
+function applyCloud() {
+  hp.st.stats = add(meta.reset || !cloud ? {} : cloud.stats, unsent());
+  hp.persist();
+}
+
+function prefs() { const s = hp.st; return { topic: s.topic, type: s.type, level: s.level }; }
+
+function schedule(ms = 800) { clearTimeout(timer); timer = setTimeout(flush, ms); }
+function flush() {
+  if (!user || !prefsLoaded) return Promise.resolve();
+  if (!flushing) flushing = doFlush().finally(() => { flushing = null; });
+  return flushing;
+}
+async function doFlush() {
+  const uidAtStart = user.uid, genAtStart = gen;
+  try {
+    if (meta.reset) {
+      await setDoc(ref, { stats: {}, updated: serverTimestamp() }, { mergeFields: ['stats', 'updated'] });
+      meta.reset = false; saveMeta();
+    }
+    inflight = JSON.parse(JSON.stringify(meta.pending));
+    const stats = {};
+    for (const [id, s] of Object.entries(inflight)) stats[id] = { r: increment(s.r), t: increment(s.t) };
+    await setDoc(ref, { ...prefs(), stats, updated: serverTimestamp() }, { merge: true });
+    if (user && user.uid === uidAtStart && gen === genAtStart) { meta.pending = add(meta.pending, inflight, -1);
+      for (const [id, s] of Object.entries(meta.pending)) if (!s.r && !s.t) delete meta.pending[id];
+      saveMeta(); }
+    inflight = null;
+  } catch (e) {
+    inflight = null;
+    console.warn('sync failed, will retry', e);
+    schedule(15000);
+  }
+}
+
+sync.onRec = (id, ok) => {
+  if (!meta.uid) return;
+  const p = meta.pending[id] || (meta.pending[id] = { r: 0, t: 0 });
+  p.t++; if (ok) p.r++;
+  saveMeta();
+};
+sync.onSave = () => { if (user) schedule(); };
+sync.onReset = () => { if (meta.uid) { gen++; inflight = null; meta.pending = {}; meta.reset = true; saveMeta(); } };
+
+function render(msg) {
+  box.hidden = false;
+  if (user) {
+    box.innerHTML = `<span>מחובר: <span class="who"></span></span><button class="linkbtn" id="signout">התנתקות</button>`;
+    box.querySelector('.who').textContent = user.displayName || user.email || '';
+    document.getElementById('signout').onclick = doSignOut;
+  } else {
+    box.innerHTML = `<button class="gbtn" id="signin">התחברות עם גוגל</button>${msg ? `<span>${msg}</span>` : ''}`;
+    document.getElementById('signin').onclick = doSignIn;
+  }
+}
+
+async function doSignIn() {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  try { await signInWithPopup(auth, provider); }
+  catch (e) {
+    if (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment') {
+      return signInWithRedirect(auth, provider);
+    }
+    if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
+      console.warn(e); render('ההתחברות נכשלה. נסה שוב.');
+    }
+  }
+}
+
+async function doSignOut() {
+  clearTimeout(timer);
+  await flush(); await flush();
+  // progress lives in the account now; this browser goes back to a clean local state
+  meta = { uid: null, pending: {}, reset: false }; saveMeta();
+  hp.st.stats = {}; hp.persist();
+  await signOut(auth);
+}
+
+onAuthStateChanged(auth, u => {
+  if (unsub) { unsub(); unsub = null; }
+  user = u; cloud = null; prefsLoaded = false;
+  sync.signedIn = !!u;
+  if (!u) { render(); hp.refresh(); return; }
+  if (meta.uid !== u.uid) {
+    // first sign-in in this browser: everything practiced here so far is added to the account.
+    // If the browser held another account's copy, that copy is dropped (it is already in that account).
+    meta.pending = meta.uid ? {} : JSON.parse(JSON.stringify(hp.st.stats));
+    meta.uid = u.uid; meta.reset = false; saveMeta();
+  }
+  ref = doc(db, 'users', u.uid);
+  render();
+  unsub = onSnapshot(ref, snap => {
+    const d = snap.data();
+    cloud = d ? { stats: d.stats || {} } : null;
+    if (!prefsLoaded) {
+      prefsLoaded = true;
+      if (d && d.topic) { const s = hp.st; s.topic = d.topic; s.type = Object.assign({}, s.type, d.type || {}); if (d.level) s.level = d.level; }
+      applyCloud(); hp.renderAll();
+      schedule(0);
+    } else { applyCloud(); hp.refresh(); }
+  }, e => console.warn('sync read failed', e));
+});
+render();
 </script>
 </body>
 </html>
