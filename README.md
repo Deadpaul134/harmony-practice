@@ -9,7 +9,12 @@ Topics:
 - **Chromatic degrees** – "B = #2 of which major scale?" and the reverse.
 
 Answers are checked the book's way: any note name that sounds right is accepted.
-Progress is stored in the browser on each device.
+Progress is stored in the browser on each device. Signing in with Google
+syncs it across devices (Firebase Auth + Cloud Firestore, project
+`concrete-spider-453418-s2`, free Spark plan). Each user has one doc,
+`users/{uid}`, and `firestore.rules` lets only that user read or write it.
+The rules are published in the Firebase console (Firestore > Rules); keep
+the file and the console in sync.
 
 ## Run
 
