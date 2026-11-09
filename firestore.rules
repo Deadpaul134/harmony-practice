@@ -1,0 +1,12 @@
+rules_version = '2';
+// Each signed-in user can read and write only their own progress doc: users/{uid}.
+// Everything else is denied. Published in the Firebase console (Firestore > Rules).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['stats', 'topic', 'type', 'level', 'updated']);
+    }
+  }
+}
