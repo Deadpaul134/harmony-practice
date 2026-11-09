@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="he">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>תרגול הרמוניה א'</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@700;900&family=Heebo:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: one narrow column on grid paper (like the course notebook); topic tabs, exercise chips, a question card, a piano keyboard for answers. */
+:root {
+  --paper: #f2f5f9;
+  --grid: #dfe6ee;
+  --card: #ffffff;
+  --ink: #1b2838;
+  --muted: #5a6a7c;
+  --rule: #ccd6e2;
+  --accent: #2343a3;
+  --accent-soft: #e4eafb;
+  --ok: #24804a;
+  --ok-soft: #e1f3e8;
+  --bad: #c0362c;
+  --bad-soft: #fbe5e2;
+  --key-white: #ffffff;
+  --key-black: #1a2130;
+  --key-edge: #9aa8b8;
+  --f-display: "Frank Ruhl Libre", "Times New Roman", serif;
+  --f-body: "Heebo", "Segoe UI", Arial, sans-serif;
+  --f-note: "IBM Plex Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #10161f; --grid: #18212d; --card: #182130; --ink: #e5ecf4; --muted: #94a4b6;
+    --rule: #2a3646; --accent: #93abff; --accent-soft: #232e4c; --ok: #6fcf97; --ok-soft: #16301f;
+    --bad: #ff8b7f; --bad-soft: #3a1e1c; --key-white: #e3e9f0; --key-black: #0a0e14; --key-edge: #4a586a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #10161f; --grid: #18212d; --card: #182130; --ink: #e5ecf4; --muted: #94a4b6;
+  --rule: #2a3646; --accent: #93abff; --accent-soft: #232e4c; --ok: #6fcf97; --ok-soft: #16301f;
+  --bad: #ff8b7f; --bad-soft: #3a1e1c; --key-white: #e3e9f0; --key-black: #0a0e14; --key-edge: #4a586a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+[hidden] { display: none !important; }
+body {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 48px;
+}
+.wrap { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 16px; }
+h1 { font-family: var(--f-display); font-weight: 900; font-size: clamp(30px, 7vw, 42px); line-height: 1.05; margin: 0; text-wrap: balance; }
+.sub { color: var(--muted); font-size: 14px; margin: 4px 0 0; }
+.staff { height: 17px; margin-top: 6px; background: repeating-linear-gradient(to bottom, var(--ink) 0 1px, transparent 1px 4px); opacity: .55; width: 100%; }
+.n { font-family: var(--f-note); font-weight: 600; direction: ltr; unicode-bidi: isolate; white-space: nowrap; }
+
+.tabs { display: flex; gap: 6px; border-bottom: 2px solid var(--ink); flex-wrap: wrap; }
+.tab { font: inherit; font-weight: 700; font-size: 17px; background: none; border: 0; color: var(--muted); padding: 8px 12px 6px; cursor: pointer; border-bottom: 4px solid transparent; margin-bottom: -2px; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tab:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.controls { display: flex; flex-direction: column; gap: 10px; }
+.row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.label { font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--muted); margin-inline-end: 4px; }
+.chip { font: inherit; font-size: 14px; border: 1.5px solid var(--rule); background: var(--card); color: var(--ink); border-radius: 999px; padding: 5px 12px; cursor: pointer; display: inline-flex; gap: 6px; align-items: baseline; }
+.chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
+.chip .pct { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.card { background: var(--card); border: 1.5px solid var(--rule); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 2px 0 var(--rule); }
+.qhead { display: flex; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 13px; }
+.prompt { font-size: 20px; line-height: 1.5; text-wrap: balance; }
+.prompt .big { font-size: 30px; }
+.seq { display: flex; flex-wrap: wrap; gap: 8px; direction: ltr; justify-content: center; }
+.seq .cell { min-width: 56px; padding: 6px 8px; border: 1.5px solid var(--rule); border-radius: 8px; text-align: center; font-family: var(--f-note); font-weight: 600; font-size: 19px; }
+.seq .cell small { display: block; font-family: var(--f-body); font-size: 12px; color: var(--muted); font-weight: 500; }
+.seq .cell.cur { border-color: var(--accent); background: var(--accent-soft); }
+.seq .cell.ok { border-color: var(--ok); background: var(--ok-soft); }
+.seq .cell.bad { border-color: var(--bad); background: var(--bad-soft); }
+
+.choices { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.choice { font: inherit; background: var(--card); color: var(--ink); border: 1.5px solid var(--rule); border-radius: 8px; padding: 8px 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.choice b { font-family: var(--f-note); font-size: 18px; direction: ltr; }
+.choice span { font-size: 12px; color: var(--muted); }
+.choice:hover:not(:disabled) { border-color: var(--accent); }
+.choice.ok { border-color: var(--ok); background: var(--ok-soft); }
+.choice.bad { border-color: var(--bad); background: var(--bad-soft); }
+.choice:disabled { cursor: default; }
+
+.kb { position: relative; height: 150px; direction: ltr; user-select: none; max-width: 520px; width: 100%; margin: 0 auto; }
+.kb .w { position: absolute; top: 0; bottom: 0; width: calc(100% / 7); background: var(--key-white); border: 1.5px solid var(--key-edge); border-radius: 0 0 7px 7px; cursor: pointer; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 8px; font-family: var(--f-note); font-weight: 600; color: #3a4656; font-size: 15px; }
+.kb .b { position: absolute; top: 0; height: 60%; width: calc(100% / 7 * .6); background: var(--key-black); border-radius: 0 0 5px 5px; cursor: pointer; z-index: 2; border: 1.5px solid var(--key-black); }
+.kb .key.sel { background: var(--accent); color: #fff; border-color: var(--accent); }
+.kb .key.ok { background: var(--ok); color: #fff; border-color: var(--ok); }
+.kb .key.bad { background: var(--bad); color: #fff; border-color: var(--bad); }
+.kb .key.miss { box-shadow: inset 0 0 0 4px var(--ok); }
+.kb.locked .key { cursor: default; }
+.hint { font-size: 13px; color: var(--muted); text-align: center; margin: 0; }
+
+.btnrow { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.btn { font: inherit; font-weight: 700; border: 0; border-radius: 8px; padding: 10px 22px; cursor: pointer; background: var(--accent); color: var(--card); }
+.btn.ghost { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+
+.fb { border-radius: 8px; padding: 12px 14px; border-inline-start: 5px solid; }
+.fb.ok { background: var(--ok-soft); border-color: var(--ok); }
+.fb.bad { background: var(--bad-soft); border-color: var(--bad); }
+.fb h3 { margin: 0 0 4px; font-size: 17px; }
+.fb p { margin: 0; }
+.fb p + p { margin-top: 4px; }
+
+.stats { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--muted); align-items: center; }
+.stats strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+.linkbtn { font: inherit; font-size: 13px; background: none; border: 0; color: var(--accent); cursor: pointer; text-decoration: underline; padding: 0; }
+
+details.ref { background: var(--card); border: 1.5px solid var(--rule); border-radius: 10px; padding: 10px 14px; }
+details.ref summary { cursor: pointer; font-weight: 700; }
+.tbl { overflow-x: auto; margin-top: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { border-bottom: 1px solid var(--rule); padding: 5px 8px; text-align: start; }
+td.num { font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: no-preference) {
+  .fb { animation: rise .18s ease-out; }
+  @keyframes rise { from { transform: translateY(4px); opacity: .4; } to { transform: none; opacity: 1; } }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap" dir="rtl">
+  <header>
+    <div>
+      <h1>תרגול הרמוניה א'</h1>
+      <p class="sub">מרווחים, מודוסים ודרגות כרומטיות · נבדק לפי שיטת הספר: כל שם שנשמע נכון מתקבל</p>
+      <div class="staff" aria-hidden="true"></div>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+
+  <section class="controls">
+    <div class="row" id="types"></div>
+    <div class="row">
+      <span class="label">רמה</span>
+      <span id="levels" class="row"></span>
+    </div>
+  </section>
+
+  <section class="card" id="card" aria-live="polite">
+    <div class="qhead"><span id="qtype"></span><span id="qcount"></span></div>
+    <div class="prompt" id="prompt"></div>
+    <div id="answer"></div>
+    <div id="feedback"></div>
+    <div class="btnrow" id="actions"></div>
+  </section>
+
+  <div class="stats" id="stats"></div>
+
+  <details class="ref">
+    <summary>טבלת עזר: מרווחים בחצאי טונים</summary>
+    <div class="tbl"><table id="reftable"></table></div>
+  </details>
+  <details class="ref">
+    <summary>טבלת עזר: המודוסים</summary>
+    <div class="tbl"><table id="modetable"></table></div>
+  </details>
+</div>
+
+<script>
+(() => {
+  // ---------- music core ----------
+  const LET = ['C','D','E','F','G','A','B'];
+  const NAT = [0,2,4,5,7,9,11];
+  const mod = (x, m) => ((x % m) + m) % m;
+  const rnd = a => a[Math.floor(Math.random() * a.length)];
+  const pc = n => mod(NAT[n.l] + n.a, 12);
+  const acc = a => a > 0 ? '#'.repeat(a) : 'b'.repeat(-a);
+  const nm = n => LET[n.l] + acc(n.a);
+  const N = n => `<span class="n">${nm(n)}</span>`;
+  const parse = s => ({ l: LET.indexOf(s[0]), a: s.slice(1).split('').reduce((t, c) => t + (c === '#' ? 1 : -1), 0) });
+  const SIMPLE = ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'].map(parse);
+  const simple = p => SIMPLE[mod(p, 12)];
+  // spell the note on letter l that sounds as pitch class p
+  const onLetter = (l, p) => { l = mod(l, 7); let d = mod(p - NAT[l], 12); if (d > 6) d -= 12; return { l, a: d }; };
+  const sounds = (n) => { const s = simple(pc(n)); return (s.l === n.l && s.a === n.a) ? '' : ` <span style="color:var(--muted)">(נשמע כמו ${N(s)})</span>`; };
+
+  const IV = [
+    { s: 0,  sym: 'P.U', he: 'פרימה זכה',    num: 1 },
+    { s: 1,  sym: '−2',  he: 'סקונדה קטנה',  num: 2 },
+    { s: 2,  sym: '+2',  he: 'סקונדה גדולה', num: 2 },
+    { s: 3,  sym: '−3',  he: 'טרצה קטנה',    num: 3 },
+    { s: 4,  sym: '+3',  he: 'טרצה גדולה',   num: 3 },
+    { s: 5,  sym: 'P4',  he: 'קוורטה זכה',   num: 4 },
+    { s: 6,  sym: '+4',  he: 'טריטון',        num: 4 },
+    { s: 7,  sym: 'P5',  he: 'קווינטה זכה',  num: 5 },
+    { s: 8,  sym: '−6',  he: 'סקסטה קטנה',   num: 6 },
+    { s: 9,  sym: '+6',  he: 'סקסטה גדולה',  num: 6 },
+    { s: 10, sym: '−7',  he: 'ספטימה קטנה',  num: 7 },
+    { s: 11, sym: '+7',  he: 'ספטימה גדולה', num: 7 },
+    { s: 12, sym: 'P8',  he: 'אוקטבה זכה',   num: 8 },
+  ];
+  const IVM = IV.filter(i => i.s > 0 && i.s < 12); // musical intervals used in building
+  const S = (i) => `<span class="n">${i.sym}</span>`;
+  const arrow = d => d > 0 ? '↑' : '↓';
+  const spellIv = (n, iv, dir) => onLetter(n.l + dir * (iv.num - 1), pc(n) + dir * iv.s);
+  const ivHint = (iv) => {
+    if (iv.num === 6) return `סקסטה = 12 פחות טרצה: ${iv.he} = 12 − ${12 - iv.s} = ${iv.s}.`;
+    if (iv.num === 7) return `ספטימה = אוקטבה פחות ${iv.s === 11 ? 'חצי טון' : 'טון'}: 12 − ${12 - iv.s} = ${iv.s}.`;
+    if (iv.s === 6) return 'טריטון = שלושה טונים שלמים = 6 חצאי טונים (נכתב +4 או −5).';
+    return `${iv.he} = ${iv.s} חצאי טונים.`;
+  };
+
+  const NOTES = {
+    1: 'C D E F G A B'.split(' '),
+    2: 'C D E F G A B C# D# F# G# A# Db Eb Gb Ab Bb'.split(' '),
+    3: 'C D E F G A B C# D# F# G# A# Db Eb Gb Ab Bb E# B# Fb Cb Bbb Ebb F## C## Abb'.split(' '),
+  };
+  const KEYS = {
+    1: 'C G F D Bb'.split(' '),
+    2: 'C G D A E F Bb Eb Ab'.split(' '),
+    3: 'C G D A E B F# C# F Bb Eb Ab Db Gb'.split(' '),
+  };
+  const noteFor = lv => {
+    const pool = NOTES[lv];
+    // hard level leans on accidentals
+    if (lv === 3 && Math.random() < .5) return parse(rnd(pool.slice(7)));
+    return parse(rnd(pool));
+  };
+
+  const MODES = [
+    { en: 'Ionian',     he: 'יוני',      st: [0,2,4,5,7,9,11], deg: 1, ch: [],     desc: 'מז\'ור רגיל' },
+    { en: 'Dorian',     he: 'דורי',      st: [0,2,3,5,7,9,10], deg: 2, ch: [5],    desc: 'מינור עם 6 גדולה (+6)' },
+    { en: 'Phrygian',   he: 'פריגי',     st: [0,1,3,5,7,8,10], deg: 3, ch: [1],    desc: 'מינור עם 2 קטנה (−2)' },
+    { en: 'Lydian',     he: 'לידי',      st: [0,2,4,6,7,9,11], deg: 4, ch: [3],    desc: 'מז\'ור עם קוורטה מוגדלת (+4)' },
+    { en: 'Mixolydian', he: 'מיקסולידי', st: [0,2,4,5,7,9,10], deg: 5, ch: [6],    desc: 'מז\'ור עם 7 קטנה (−7)' },
+    { en: 'Aeolian',    he: 'אאולי',     st: [0,2,3,5,7,8,10], deg: 6, ch: [],     desc: 'מינור טבעי' },
+    { en: 'Locrian',    he: 'לוקרי',     st: [0,1,3,5,6,8,10], deg: 7, ch: [1,4],  desc: 'מינור עם −2 ו־−5' },
+  ];
+  const MAJ = MODES[0].st;
+  const spellMode = (r, m) => m.st.map((s, i) => onLetter(r.l + i, pc(r) + s));
+  const maxAcc = arr => Math.max(...arr.map(n => Math.abs(n.a)));
+  const pickMode = (lv, filter = () => true) => {
+    for (let k = 0; k < 400; k++) {
+      const m = rnd(MODES.filter(filter));
+      let r;
+      if (lv === 1) r = { l: mod(m.deg - 1, 7), a: 0 }; // modes of C major: D Dorian, E Phrygian...
+      else r = parse(rnd(lv === 2 ? NOTES[2] : NOTES[2].concat(['E#','Cb','B#','Fb'])));
+      const notes = spellMode(r, m);
+      if (maxAcc(notes) <= (lv === 3 ? 2 : 1)) return { r, m, notes };
+    }
+  };
+  const seqHTML = (notes, extra = () => '') => `<div class="seq">${notes.map((n, i) => `<div class="cell${extra(i)}">${nm(n)}</div>`).join('')}</div>`;
+
+  const DEGS = ['#1','b2','#2','b3','#4','b5','#5','b6','#6','b7'];
+  const degParse = d => ({ alt: d[0] === '#' ? 1 : -1, deg: +d.slice(1) });
+
+  // ---------- exercises ----------
+  // kind: choice | key | keys | chain
+  const EX = {
+    intervals: { title: 'מרווחים', types: [
+      { id: 'iv-count', title: 'כמה חצאי טונים', gen(lv) {
+        const iv = rnd(lv === 1 ? IV.filter(i => [0,2,4,5,7,9,11,12].includes(i.s)) : IV);
+        return {
+          prompt: `כמה חצאי טונים יש ב־<span class="big">${S(iv)}</span>?<br><span style="font-size:15px;color:var(--muted)">${iv.he}</span>`,
+          kind: 'choice', choices: [...Array(13).keys()].map(v => ({ label: String(v), value: v })),
+          correct: iv.s,
+          explain: () => ivHint(iv),
+        };
+      }},
+      { id: 'iv-name', title: 'מה שם המרווח', gen(lv) {
+        const a = noteFor(lv), iv = rnd(IVM), dir = lv === 1 ? 1 : rnd([1, -1]);
+        let b = spellIv(a, iv, dir);
+        // book method: sometimes the second note is written with another name that sounds the same
+        if (lv >= 2 && Math.random() < (lv === 3 ? .45 : .25)) {
+          const alt = [-1, 1].map(o => onLetter(b.l + o, pc(b))).filter(x => Math.abs(x.a) <= 2);
+          if (alt.length) b = rnd(alt);
+        }
+        if (Math.abs(b.a) > 2) b = simple(pc(b));
+        return {
+          prompt: `מה המרווח?<div class="seq" style="margin-top:10px"><div class="cell">${nm(a)}</div><div class="cell" style="border:0;font-size:26px">${dir > 0 ? '→ ↑' : '→ ↓'}</div><div class="cell">${nm(b)}</div></div><span style="font-size:15px;color:var(--muted)">${dir > 0 ? 'מהתו הראשון למעלה' : 'מהתו הראשון למטה'}</span>`,
+          kind: 'choice', choices: IVM.map(i => ({ label: i.sym, sub: i.he, value: i.s })),
+          correct: iv.s,
+          explain: () => `מ־${N(a)} ${dir > 0 ? 'עולים' : 'יורדים'} ${iv.s} חצאי טונים עד ${N(b)} ← ${S(iv)} ${iv.he}.`,
+        };
+      }},
+      { id: 'iv-build', title: 'בנה מרווח', gen(lv) {
+        const a = noteFor(lv), iv = rnd(IVM), dir = lv === 1 ? 1 : rnd([1, -1]);
+        const b = spellIv(a, iv, dir);
+        const show = Math.abs(b.a) > 2 ? simple(pc(b)) : b;
+        return {
+          prompt: `לחץ על התו שנמצא <b>${iv.he}</b> ${S(iv)}${arrow(dir)} ${dir > 0 ? 'מעל' : 'מתחת ל'}־<span class="big">${N(a)}</span>`,
+          kind: 'key', correct: pc(b),
+          explain: () => `${N(a)} ${dir > 0 ? '+' : '−'} ${iv.s} חצאי טונים = ${N(show)}${sounds(show)}.`,
+        };
+      }},
+      { id: 'iv-chain', title: 'שרשרת מרווחים', gen(lv) {
+        const start = noteFor(lv), steps = [];
+        let cur = start;
+        const len = lv === 3 ? 6 : lv === 2 ? 5 : 4;
+        for (let i = 0; i < len; i++) {
+          const iv = rnd(IVM), dir = rnd([1, -1]);
+          let nx = spellIv(cur, iv, dir);
+          if (Math.abs(nx.a) > 2) nx = simple(pc(nx)); // book method: respell instead of piling up sharps
+          steps.push({ iv, dir, from: cur, to: nx });
+          cur = nx;
+        }
+        return { kind: 'chain', start, steps };
+      }},
+    ]},
+    modes: { title: 'מודוסים', types: [
+      { id: 'md-build', title: 'בנה מודוס', gen(lv) {
+        const { r, m, notes } = pickMode(lv);
+        return {
+          prompt: `בחר את שבעת הצלילים של <span class="big n">${nm(r)} ${m.en}</span><br><span style="font-size:15px;color:var(--muted)">${m.he}</span>`,
+          kind: 'keys', correct: notes.map(pc),
+          explain: () => `${m.he} = ${m.desc}.${seqHTML(notes, i => m.ch.includes(i) ? ' cur' : '')}<p style="font-size:13px;color:var(--muted)">מסומן: הצליל האופייני.</p>`,
+        };
+      }},
+      { id: 'md-name', title: 'זהה מודוס', gen(lv) {
+        const { r, m, notes } = pickMode(lv);
+        return {
+          prompt: `איזה מודוס זה?${seqHTML(notes)}`,
+          kind: 'choice', choices: MODES.map(x => ({ label: x.he, sub: x.en, value: x.en })),
+          correct: m.en,
+          explain: () => `${N(r)} ${m.en}: ${m.desc}.`,
+        };
+      }},
+      { id: 'md-parent', title: 'סולם האב', gen(lv) {
+        const { r, m } = pickMode(lv);
+        const par = onLetter(r.l - (m.deg - 1), pc(r) - MAJ[m.deg - 1]);
+        const show = Math.abs(par.a) > 1 ? simple(pc(par)) : par;
+        return {
+          prompt: `מהו סולם האב (המז'ורי) של <span class="big n">${nm(r)} ${m.en}</span>?`,
+          kind: 'key', correct: pc(par),
+          explain: () => `${m.he} הוא מדרגה ${m.deg} בסולם האב. ${m.deg === 1 ? 'אותו צליל' : `יורדים ${MAJ[m.deg - 1]} חצאי טונים מ־${N(r)}`} ← ${N(show)} מז'ור${sounds(show)}.`,
+        };
+      }},
+      { id: 'md-char', title: 'הצליל האופייני', gen(lv) {
+        const { r, m, notes } = pickMode(lv, x => x.ch.length);
+        const two = m.ch.length > 1;
+        return {
+          prompt: `מהו ${two ? 'אחד הצלילים האופייניים' : 'הצליל האופייני'} של <span class="big n">${nm(r)} ${m.en}</span>?`,
+          kind: 'key', correct: m.ch.map(i => pc(notes[i])),
+          explain: () => `${m.he} = ${m.desc}. ${two ? 'הצלילים האופייניים' : 'הצליל האופייני'}: ${m.ch.map(i => N(notes[i])).join(' ו־')}.`,
+        };
+      }},
+    ]},
+    chroma: { title: 'דרגות כרומטיות', types: [
+      { id: 'ch-which', title: 'באיזה סולם', gen(lv) {
+        for (let k = 0; k < 400; k++) {
+          const x = noteFor(Math.min(lv, 2)), d = rnd(DEGS), { alt, deg } = degParse(d);
+          const root = onLetter(x.l - (deg - 1), pc(x) - MAJ[deg - 1] - alt);
+          if (Math.abs(root.a) > 1 || !KEYS[3].includes(nm(root)) && lv < 3) continue;
+          const dia = onLetter(root.l + deg - 1, pc(root) + MAJ[deg - 1]);
+          return {
+            prompt: `<span class="big">${N(x)} = <span class="n">${d}</span></span><br>באיזה סולם מז'ורי?`,
+            kind: 'key', correct: pc(root),
+            explain: () => `ב־${N(root)} מז'ור הדרגה ${deg} היא ${N(dia)}. ${alt > 0 ? 'מגביהים' : 'מנמיכים'} בחצי טון ← ${N(x)}. לכן ${N(root)}${sounds(root)}.`,
+          };
+        }
+      }},
+      { id: 'ch-what', title: 'מה הדרגה', gen(lv) {
+        const root = parse(rnd(KEYS[lv])), d = rnd(DEGS), { alt, deg } = degParse(d);
+        const dia = onLetter(root.l + deg - 1, pc(root) + MAJ[deg - 1]);
+        let x = { l: dia.l, a: dia.a + alt };
+        if (Math.abs(x.a) > 2) x = simple(pc(x));
+        return {
+          prompt: `מהי הדרגה <span class="big n">${d}</span> בסולם <span class="big n">${nm(root)}</span> מז'ור?`,
+          kind: 'key', correct: pc(x),
+          explain: () => `ב־${N(root)} מז'ור הדרגה ${deg} היא ${N(dia)}. ${alt > 0 ? 'מגביהים' : 'מנמיכים'} בחצי טון ← ${N(x)}${sounds(x)}.`,
+        };
+      }},
+    ]},
+  };
+
+  // ---------- storage ----------
+  const KEY = 'harmony-practice-v1';
+  let st = { topic: 'intervals', type: {}, level: 1, stats: {} };
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) st = Object.assign(st, s); } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
+  const rec = (id, ok) => { const s = st.stats[id] || (st.stats[id] = { r: 0, t: 0 }); s.t++; if (ok) s.r++; save(); };
+  const pctOf = id => { const s = st.stats[id]; return s && s.t ? Math.round(100 * s.r / s.t) : null; };
+
+  // ---------- UI ----------
+  const $ = id => document.getElementById(id);
+  const allTypes = () => Object.values(EX).flatMap(t => t.types);
+  let q = null, done = false, typeObj = null, session = 0;
+
+  function renderTabs() {
+    $('tabs').innerHTML = Object.entries(EX).map(([k, t]) =>
+      `<button class="tab" role="tab" id="tab-${k}" aria-selected="${st.topic === k}" data-k="${k}">${t.title}</button>`).join('');
+    $('tabs').querySelectorAll('.tab').forEach(b => b.onclick = () => { st.topic = b.dataset.k; save(); renderAll(); });
+  }
+  function renderTypes() {
+    const t = EX[st.topic];
+    if (!st.type[st.topic] || !t.types.find(x => x.id === st.type[st.topic])) st.type[st.topic] = t.types[0].id;
+    $('types').innerHTML = `<span class="label">תרגיל</span>` + t.types.map(x => {
+      const p = pctOf(x.id);
+      return `<button class="chip" id="type-${x.id}" aria-pressed="${st.type[st.topic] === x.id}" data-id="${x.id}">${x.title}${p === null ? '' : `<span class="pct">${p}%</span>`}</button>`;
+    }).join('');
+    $('types').querySelectorAll('.chip').forEach(b => b.onclick = () => { st.type[st.topic] = b.dataset.id; save(); renderTypes(); next(); });
+  }
+  function renderLevels() {
+    const L = [[1, 'קלה'], [2, 'בינונית'], [3, 'כמו בספר']];
+    $('levels').innerHTML = L.map(([v, n]) => `<button class="chip" id="lv-${v}" aria-pressed="${st.level === v}" data-v="${v}">${n}</button>`).join('');
+    $('levels').querySelectorAll('.chip').forEach(b => b.onclick = () => { st.level = +b.dataset.v; save(); renderLevels(); next(); });
+  }
+  function renderStats() {
+    let r = 0, t = 0; Object.values(st.stats).forEach(s => { r += s.r; t += s.t; });
+    const weak = allTypes().map(x => ({ x, s: st.stats[x.id] })).filter(o => o.s && o.s.t >= 5)
+      .sort((a, b) => a.s.r / a.s.t - b.s.r / b.s.t)[0];
+    $('stats').innerHTML = t ? `<span>נענו <strong>${t}</strong></span><span>הצלחה <strong>${Math.round(100 * r / t)}%</strong></span>` +
+      (weak && weak.s.r / weak.s.t < .85 ? `<span>כדאי לחזק: <strong>${weak.x.title}</strong> (${Math.round(100 * weak.s.r / weak.s.t)}%)</span>` : '') +
+      `<span id="resetwrap"><button class="linkbtn" id="reset">איפוס התקדמות</button></span>`
+      : '<span>ההתקדמות נשמרת בדפדפן הזה בלבד.</span>';
+    const rb = $('reset');
+    if (rb) rb.onclick = () => {
+      $('resetwrap').innerHTML = `למחוק את כל ההתקדמות? <button class="linkbtn" id="rs-yes">כן, למחוק</button> · <button class="linkbtn" id="rs-no">ביטול</button>`;
+      $('rs-yes').onclick = () => { st.stats = {}; save(); renderTypes(); renderStats(); };
+      $('rs-no').onclick = renderStats;
+    };
+  }
+
+  // keyboard: pcs of white keys and black keys with their x position (in white-key units)
+  const WH = [0,2,4,5,7,9,11], BL = [[1,1],[3,2],[6,4],[8,5],[10,6]];
+  function keyboard(onPress) {
+    const el = document.createElement('div');
+    el.className = 'kb';
+    el.innerHTML = WH.map((p, i) => `<div class="key w" role="button" tabindex="0" aria-label="${LET[i]}" data-pc="${p}" style="left:calc(100% / 7 * ${i})">${LET[i]}</div>`).join('') +
+      BL.map(([p, x]) => `<div class="key b" role="button" tabindex="0" aria-label="${SIMPLE[p].l >= 0 ? nm(SIMPLE[p]) : ''}" data-pc="${p}" style="left:calc(100% / 7 * ${x} - 100% / 7 * .3)"></div>`).join('');
+    el.querySelectorAll('.key').forEach(k => {
+      const go = () => { if (!el.classList.contains('locked')) onPress(+k.dataset.pc, k); };
+      k.onclick = go; k.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } };
+    });
+    el.mark = (p, c) => el.querySelector(`[data-pc="${p}"]`).classList.add(c);
+    el.clear = () => el.querySelectorAll('.key').forEach(k => k.classList.remove('sel', 'ok', 'bad', 'miss'));
+    return el;
+  }
+
+  function finish(ok, html) {
+    done = true;
+    rec(typeObj.id, ok);
+    $('feedback').innerHTML = `<div class="fb ${ok ? 'ok' : 'bad'}"><h3>${ok ? 'נכון' : 'לא נכון'}</h3><p>${html}</p></div>`;
+    $('actions').innerHTML = `<button class="btn" id="next">השאלה הבאה</button>`;
+    $('next').onclick = next;
+    $('next').focus({ preventScroll: true });
+    renderTypes(); renderStats();
+  }
+
+  function next() {
+    typeObj = EX[st.topic].types.find(x => x.id === st.type[st.topic]);
+    q = typeObj.gen(st.level); done = false; session++;
+    $('qtype').textContent = `${EX[st.topic].title} · ${typeObj.title}`;
+    $('qcount').textContent = `שאלה ${session}`;
+    $('feedback').innerHTML = ''; $('actions').innerHTML = ''; $('answer').innerHTML = '';
+    if (q.kind === 'chain') return chain();
+    $('prompt').innerHTML = q.prompt;
+
+    if (q.kind === 'choice') {
+      const box = document.createElement('div'); box.className = 'choices';
+      box.innerHTML = q.choices.map((c, i) => `<button class="choice" id="ch-${i}" data-i="${i}"><b>${c.label}</b>${c.sub ? `<span>${c.sub}</span>` : ''}</button>`).join('');
+      $('answer').appendChild(box);
+      box.querySelectorAll('.choice').forEach(b => b.onclick = () => {
+        if (done) return;
+        const c = q.choices[+b.dataset.i], ok = c.value === q.correct;
+        box.querySelectorAll('.choice').forEach(x => { x.disabled = true; if (q.choices[+x.dataset.i].value === q.correct) x.classList.add('ok'); });
+        if (!ok) b.classList.add('bad');
+        finish(ok, q.explain());
+      });
+    }
+    if (q.kind === 'key') {
+      const want = [].concat(q.correct);
+      const kb = keyboard((p) => {
+        if (done) return;
+        const ok = want.includes(p);
+        kb.classList.add('locked');
+        want.forEach(w => kb.mark(w, 'ok'));
+        if (!ok) kb.mark(p, 'bad');
+        finish(ok, q.explain());
+      });
+      $('answer').appendChild(kb);
+      $('answer').insertAdjacentHTML('beforeend', '<p class="hint">לחץ על הקליד. כל שם שנשמע אותו דבר נחשב נכון.</p>');
+    }
+    if (q.kind === 'keys') {
+      const sel = new Set(), want = new Set(q.correct);
+      const kb = keyboard((p, k) => { if (sel.has(p)) { sel.delete(p); k.classList.remove('sel'); } else { sel.add(p); k.classList.add('sel'); } });
+      $('answer').appendChild(kb);
+      $('answer').insertAdjacentHTML('beforeend', '<p class="hint">בחר 7 קלידים ולחץ "בדוק". לחיצה נוספת מבטלת.</p>');
+      $('actions').innerHTML = `<button class="btn" id="check">בדוק</button>`;
+      $('check').onclick = () => {
+        if (done) return;
+        const ok = sel.size === want.size && [...sel].every(p => want.has(p));
+        kb.clear(); kb.classList.add('locked');
+        for (let p = 0; p < 12; p++) {
+          if (sel.has(p) && want.has(p)) kb.mark(p, 'ok');
+          else if (sel.has(p)) kb.mark(p, 'bad');
+          else if (want.has(p)) kb.mark(p, 'miss');
+        }
+        finish(ok, q.explain() + (ok ? '' : '<p style="font-size:13px">אדום: מיותר · מסגרת ירוקה: חסר.</p>'));
+      };
+    }
+  }
+
+  function chain() {
+    let i = 0, allOk = true;
+    const marks = [];
+    const draw = () => {
+      const cells = [`<div class="cell">${nm(q.start)}<small>התחלה</small></div>`].concat(q.steps.map((s, k) =>
+        `<div class="cell ${k < i ? (marks[k] ? 'ok' : 'bad') : k === i && !done ? 'cur' : ''}">${k < i ? nm(s.to) : '?'}<small>${s.iv.sym}${arrow(s.dir)}</small></div>`));
+      $('prompt').innerHTML = `בנה את הצליל הבא בכל צעד. אם טעית, השרשרת ממשיכה מהצליל הנכון.<div class="seq" style="margin-top:12px">${cells.join('')}</div>`;
+    };
+    draw();
+    const kb = keyboard((p) => {
+      if (done) return;
+      const s = q.steps[i], ok = p === pc(s.to);
+      marks[i] = ok; allOk = allOk && ok;
+      kb.clear(); kb.mark(pc(s.to), 'ok'); if (!ok) kb.mark(p, 'bad');
+      i++;
+      if (i === q.steps.length) {
+        kb.classList.add('locked'); done = true; draw(); done = false;
+        const wrong = q.steps.map((s, k) => ({ s, k })).filter(o => !marks[o.k]);
+        finish(allOk, allOk ? `כל ${q.steps.length} הצעדים נכונים.` : wrong.map(({ s }) =>
+          `${N(s.from)} ${S(s.iv)}${arrow(s.dir)} = ${s.iv.s} חצאי טונים ${s.dir > 0 ? 'למעלה' : 'למטה'} ← ${N(s.to)}${sounds(s.to)}`).join('<br>'));
+      } else draw();
+    });
+    $('answer').appendChild(kb);
+    $('answer').insertAdjacentHTML('beforeend', '<p class="hint">לחץ קליד לכל צעד. ירוק מראה את התשובה הנכונה של הצעד הקודם.</p>');
+  }
+
+  function renderAll() { renderTabs(); renderTypes(); renderLevels(); renderStats(); next(); }
+
+  // reference tables
+  $('reftable').innerHTML = '<tr><th>סימון</th><th>שם</th><th>חצאי טונים</th><th>טונים</th></tr>' +
+    IV.map(i => `<tr><td>${S(i)}</td><td>${i.he}</td><td class="num">${i.s}</td><td class="num">${i.s / 2}</td></tr>`).join('');
+  $('modetable').innerHTML = '<tr><th>מודוס</th><th>לפי הספר</th><th>מדרגה בסולם האב</th><th>מ־C</th></tr>' +
+    MODES.map(m => `<tr><td>${m.he} <span class="n" style="font-weight:500">${m.en}</span></td><td>${m.desc}</td><td class="num">${m.deg}</td><td><span class="n" style="font-weight:500">${spellMode(parse('C'), m).map(nm).join(' ')}</span></td></tr>`).join('');
+
+  document.addEventListener('keydown', e => { if (e.key === 'Enter' && done && $('next') && document.activeElement !== $('next')) next(); });
+  window.__test = { EX, pc, nm, parse, spellIv, IV, MODES, spellMode, onLetter };
+  renderAll();
+})();
+</script>
+</body>
+</html>
