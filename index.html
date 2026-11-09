@@ -522,14 +522,16 @@ td.num, td:has(.n) {
 }
 
 /* ---- Harmona game layer (console dark) ---- */
-.app-shell { min-height: 100vh; padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px)); }
+.app-shell { min-height: 100vh; padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box; }
 .screen[hidden] { display: none !important; }
 .side {
-  position: fixed; inset: auto 0 0 0; z-index: 40;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
   display: flex; flex-direction: column; align-items: stretch;
   padding: 0 8px calc(6px + env(safe-area-inset-bottom, 0px));
   background: var(--card); border-top: 1px solid var(--line);
   box-shadow: 0 -2px 12px rgba(0,0,0,.3);
+  /* keep above iOS home indicator / browser chrome */
+  padding-bottom: max(6px, env(safe-area-inset-bottom, 0px));
 }
 .nav {
   display: flex; justify-content: space-around; align-items: stretch; gap: 2px;
@@ -545,8 +547,10 @@ td.num, td:has(.n) {
 .nav-i.on { color: var(--accent-t); background: var(--accent-soft); font-weight: 700; box-shadow: inset 0 3px 0 var(--accent); }
 .nav-i:hover { color: var(--text); }
 .hud {
-  display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px;
+  display: flex; flex-wrap: nowrap; gap: 8px; align-items: center; justify-content: space-between;
+  margin-bottom: 4px; width: 100%;
 }
+.hud-stats { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-width: 0; flex: 1; }
 .hud-chip {
   display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 4px 12px;
   border-radius: 6px; background: var(--card); border: 1px solid var(--line); font-size: 13px;
@@ -556,8 +560,9 @@ td.num, td:has(.n) {
 .mute-btn {
   width: 44px; height: 44px; border-radius: 6px; border: 1px solid var(--line2);
   background: var(--card2); color: var(--muted-t); display: grid; place-items: center; cursor: pointer;
+  flex: none; margin-inline-start: auto;
 }
-.mute-btn.on { color: var(--accent-t); border-color: var(--accent); }
+.mute-btn.on { color: var(--accent-t); border-color: var(--accent); background: var(--accent-soft); }
 .combo {
   display: flex; align-items: center; gap: 10px; align-self: center;
   min-height: 40px; padding: 4px 14px; border: 1px solid var(--line); border-radius: 6px;
@@ -1021,7 +1026,7 @@ td.num, td:has(.n) {
     const rb = $('reset');
     if (rb) rb.onclick = () => {
       $('resetwrap').innerHTML = `למחוק את כל ההתקדמות? <button class="linkbtn" id="rs-yes">כן, למחוק</button> · <button class="linkbtn" id="rs-no">ביטול</button>`;
-      $('rs-yes').onclick = () => { st.stats = {}; if (sync.onReset) sync.onReset(); save(); renderTypes(); renderStats(); };
+      $('rs-yes').onclick = () => { st.stats = {}; st.points = 0; st.streak = { current: 0, best: 0, lastDay: null, freezes: 1, freezeWeek: null }; st.days = {}; st.log = []; st.run = 0; st.session = null; if (sync.onReset) sync.onReset(); save(); renderTypes(); renderStats(); if (window.HPGame) { HPGame.refreshHud(); } };
       $('rs-no').onclick = renderStats;
     };
   }
@@ -1227,6 +1232,35 @@ function applyCloud() {
 
 function prefs() { const s = hp.st; return { topic: s.topic, type: s.type, level: s.level }; }
 
+function gamePayload() {
+  const C = window.HP && HP.core;
+  if (!C) return null;
+  return C.gameSnapshot(hp.st);
+}
+
+function mergeGameFromCloud(d) {
+  const C = window.HP && HP.core;
+  if (!C || !d) return;
+  const merged = C.mergeGame(hp.st, {
+    points: d.points,
+    streak: d.streak,
+    days: d.days,
+    log: d.log,
+  });
+  hp.st.points = merged.points;
+  hp.st.streak = merged.streak;
+  hp.st.days = merged.days;
+  hp.st.log = merged.log;
+  hp.persist();
+  if (window.HPGame) {
+    if (HPGame.refreshHud) HPGame.refreshHud();
+    if (HPGame.renderHome && location.hash.replace(/^#/, '') === 'home') HPGame.renderHome();
+    if (HPGame.renderProgress && location.hash.replace(/^#/, '') === 'progress') HPGame.renderProgress();
+  }
+}
+
+let gameSyncEnabled = true; /* flips false if rules reject game fields */
+
 function schedule(ms = 800) { clearTimeout(timer); timer = setTimeout(flush, ms); }
 function flush() {
   if (!user || !prefsLoaded) return Promise.resolve();
@@ -1237,13 +1271,33 @@ async function doFlush() {
   const uidAtStart = user.uid, genAtStart = gen;
   try {
     if (meta.reset) {
-      await setDoc(ref, { stats: {}, updated: serverTimestamp() }, { mergeFields: ['stats', 'updated'] });
+      const wipe = { stats: {}, updated: serverTimestamp() };
+      if (gameSyncEnabled) Object.assign(wipe, { points: 0, streak: { current: 0, best: 0, lastDay: null, freezes: 1, freezeWeek: null }, days: {}, log: [] });
+      try {
+        await setDoc(ref, wipe, { mergeFields: Object.keys(wipe) });
+      } catch (e) {
+        if (e && (e.code === 'permission-denied' || String(e.message || '').includes('permission'))) {
+          gameSyncEnabled = false;
+          await setDoc(ref, { stats: {}, updated: serverTimestamp() }, { mergeFields: ['stats', 'updated'] });
+        } else throw e;
+      }
       meta.reset = false; saveMeta();
     }
     inflight = JSON.parse(JSON.stringify(meta.pending));
     const stats = {};
     for (const [id, s] of Object.entries(inflight)) stats[id] = { r: increment(s.r), t: increment(s.t) };
-    await setDoc(ref, { ...prefs(), stats, updated: serverTimestamp() }, { merge: true });
+    const base = { ...prefs(), stats, updated: serverTimestamp() };
+    const game = gameSyncEnabled ? gamePayload() : null;
+    const payload = game ? { ...base, ...game } : base;
+    try {
+      await setDoc(ref, payload, { merge: true });
+    } catch (e) {
+      /* Rules not yet updated: keep syncing classic fields only, silently. */
+      if (game && e && (e.code === 'permission-denied' || String(e.message || '').includes('permission'))) {
+        gameSyncEnabled = false;
+        await setDoc(ref, base, { merge: true });
+      } else throw e;
+    }
     if (user && user.uid === uidAtStart && gen === genAtStart) { meta.pending = add(meta.pending, inflight, -1);
       for (const [id, s] of Object.entries(meta.pending)) if (!s.r && !s.t) delete meta.pending[id];
       saveMeta(); }
@@ -1295,7 +1349,11 @@ async function doSignOut() {
   await flush(); await flush();
   // progress lives in the account now; this browser goes back to a clean local state
   meta = { uid: null, pending: {}, reset: false }; saveMeta();
-  hp.st.stats = {}; hp.persist();
+  hp.st.stats = {};
+  hp.st.points = 0;
+  hp.st.streak = { current: 0, best: 0, lastDay: null, freezes: 1, freezeWeek: null };
+  hp.st.days = {}; hp.st.log = []; hp.st.run = 0; hp.st.session = null;
+  hp.persist();
   await signOut(auth);
 }
 
@@ -1314,13 +1372,19 @@ onAuthStateChanged(auth, u => {
   render();
   unsub = onSnapshot(ref, snap => {
     const d = snap.data();
-    cloud = d ? { stats: d.stats || {} } : null;
+    cloud = d ? { stats: d.stats || {}, points: d.points, streak: d.streak, days: d.days, log: d.log } : null;
     if (!prefsLoaded) {
       prefsLoaded = true;
       if (d && d.topic) { const s = hp.st; s.topic = d.topic; s.type = Object.assign({}, s.type, d.type || {}); if (d.level) s.level = d.level; }
-      applyCloud(); hp.renderAll();
+      applyCloud();
+      mergeGameFromCloud(d);
+      hp.renderAll();
       schedule(0);
-    } else { applyCloud(); hp.refresh(); }
+    } else {
+      applyCloud();
+      mergeGameFromCloud(d);
+      hp.refresh();
+    }
   }, e => console.warn('sync read failed', e));
 });
 render();

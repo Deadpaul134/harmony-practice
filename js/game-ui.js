@@ -21,6 +21,7 @@
 
   G.route = function (name) {
     routeName = name;
+    G.clearCelebrations();
     ['home', 'practice', 'progress', 'summary'].forEach(function (id) {
       const el = $('screen-' + id);
       if (el) el.hidden = id !== name;
@@ -44,10 +45,12 @@
     const streak = C.effectiveStreak(s.streak, C.today());
     const mute = !!s.mute;
     return (
-      '<span class="hud-chip">רמה <b>' + xp.level + '</b></span>' +
-      '<span class="hud-chip"><b dir="ltr">' + xp.xp + '/' + xp.to + '</b> XP</span>' +
-      '<span class="hud-chip">🔥 <b>' + streak + '</b></span>' +
-      '<span class="hud-chip"><b>' + (s.points | 0) + '</b> נק׳</span>' +
+      '<div class="hud-stats">' +
+        '<span class="hud-chip">רמה <b>' + xp.level + '</b></span>' +
+        '<span class="hud-chip"><b dir="ltr">' + xp.xp + '/' + xp.to + '</b> XP</span>' +
+        '<span class="hud-chip">🔥 <b>' + streak + '</b></span>' +
+        '<span class="hud-chip"><b>' + (s.points | 0) + '</b> נק׳</span>' +
+      '</div>' +
       '<button type="button" class="mute-btn' + (mute ? ' on' : '') + '" id="muteBtn" aria-label="' + (mute ? 'הפעל צלילים' : 'השתק') + '" title="צלילים">' +
         (mute
           ? '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M16 9l5 5M21 9l-5 5"/></svg>'
@@ -232,7 +235,13 @@
     G.route('summary');
   };
 
+  let celebTimer = null;
+  G.clearCelebrations = function () {
+    document.querySelectorAll('.celeb').forEach(function (el) { el.remove(); });
+    if (celebTimer) { clearTimeout(celebTimer); celebTimer = null; }
+  };
   function celebrate() {
+    G.clearCelebrations();
     if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const layer = document.createElement('div');
     layer.className = 'celeb'; layer.setAttribute('aria-hidden', 'true');
@@ -244,7 +253,7 @@
       layer.appendChild(d);
     }
     document.body.appendChild(layer);
-    setTimeout(function () { layer.remove(); }, 1400);
+    celebTimer = setTimeout(function () { G.clearCelebrations(); }, 1200);
   }
   function softCelebrate() { /* combo glow only via refreshHud */ }
 

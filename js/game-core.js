@@ -172,7 +172,7 @@
       runBest: s.runBest | 0,
     };
     st.log.push(entry);
-    if (st.log.length > 100) st.log = st.log.slice(-100);
+    if (st.log.length > CORE.LOG_CAP) st.log = st.log.slice(-CORE.LOG_CAP);
     st.session = null;
     return entry;
   };
@@ -192,6 +192,91 @@
     const goal = CORE.POINTS.dailyGoal;
     return { answered: d.answered | 0, correct: d.correct | 0, points: d.points | 0, goal: goal, done: (d.answered | 0) >= goal };
   };
+
+
+  CORE.LOG_CAP = 40;
+  CORE.DAYS_CAP = 60; /* keep last ~2 months of day rows */
+
+  CORE.mergeStreak = function (a, b) {
+    a = CORE.normStreak(a); b = CORE.normStreak(b);
+    const out = CORE.normStreak(null);
+    out.best = Math.max(a.best, b.best);
+    /* prefer the side that practiced more recently */
+    if (!a.lastDay) return Object.assign(out, { current: b.current, lastDay: b.lastDay, freezes: b.freezes, freezeWeek: b.freezeWeek });
+    if (!b.lastDay) return Object.assign(out, { current: a.current, lastDay: a.lastDay, freezes: a.freezes, freezeWeek: a.freezeWeek });
+    const cmp = CORE.dayDiff(a.lastDay, b.lastDay);
+    const newer = cmp > 0 ? b : cmp < 0 ? a : (a.current >= b.current ? a : b);
+    const older = newer === a ? b : a;
+    out.current = newer.current;
+    out.lastDay = newer.lastDay;
+    out.freezes = Math.max(a.freezes, b.freezes);
+    out.freezeWeek = newer.freezeWeek || older.freezeWeek;
+    if (out.current > out.best) out.best = out.current;
+    return out;
+  };
+
+  CORE.mergeDays = function (a, b) {
+    const out = {};
+    const keys = new Set([].concat(Object.keys(a || {}), Object.keys(b || {})));
+    keys.forEach(function (k) {
+      const x = (a && a[k]) || {}, y = (b && b[k]) || {};
+      out[k] = {
+        answered: Math.max(x.answered | 0, y.answered | 0),
+        correct: Math.max(x.correct | 0, y.correct | 0),
+        points: Math.max(x.points | 0, y.points | 0),
+      };
+    });
+    /* cap by newest ymd */
+    const sorted = Object.keys(out).sort();
+    if (sorted.length > CORE.DAYS_CAP) {
+      sorted.slice(0, sorted.length - CORE.DAYS_CAP).forEach(function (k) { delete out[k]; });
+    }
+    return out;
+  };
+
+  CORE.mergeLog = function (a, b) {
+    const map = new Map();
+    function key(e) { return String(e.ts) + '|' + (e.topic || '') + '|' + (e.n | 0) + '|' + (e.ok | 0); }
+    [].concat(a || [], b || []).forEach(function (e) {
+      if (!e || e.ts == null) return;
+      const k = key(e);
+      const prev = map.get(k);
+      if (!prev || (e.points | 0) > (prev.points | 0)) map.set(k, {
+        ts: e.ts, topic: e.topic, n: e.n | 0, ok: e.ok | 0,
+        points: e.points | 0, bonus: e.bonus | 0, runBest: e.runBest | 0,
+      });
+    });
+    return Array.from(map.values()).sort(function (x, y) { return x.ts - y.ts; }).slice(-CORE.LOG_CAP);
+  };
+
+  /* Merge cloud game snapshot into local state. Never decreases points / best streak. */
+  CORE.mergeGame = function (local, cloud) {
+    const L = CORE.migrateState(local || {});
+    if (!cloud) return L;
+    L.points = Math.max(L.points | 0, cloud.points | 0);
+    L.streak = CORE.mergeStreak(L.streak, cloud.streak);
+    L.days = CORE.mergeDays(L.days, cloud.days);
+    L.log = CORE.mergeLog(L.log, cloud.log);
+    return L;
+  };
+
+  /* Snapshot of syncable game fields (small). */
+  CORE.gameSnapshot = function (st) {
+    const s = CORE.migrateState(st || {});
+    return {
+      points: s.points | 0,
+      streak: {
+        current: s.streak.current | 0,
+        best: s.streak.best | 0,
+        lastDay: s.streak.lastDay || null,
+        freezes: s.streak.freezes | 0,
+        freezeWeek: s.streak.freezeWeek || null,
+      },
+      days: CORE.mergeDays(s.days, {}),
+      log: CORE.mergeLog(s.log, []),
+    };
+  };
+
 
   if (typeof module !== 'undefined' && module.exports) module.exports = CORE;
 })(typeof window !== 'undefined' ? window : globalThis);
