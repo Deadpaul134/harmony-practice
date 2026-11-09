@@ -570,7 +570,7 @@ td.num { font-variant-numeric: tabular-nums; }
 // Signed out, nothing here runs except the sign-in button. Stats go up as increments,
 // so two devices answering at the same time never overwrite each other.
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
-import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signInWithRedirect, signOut }
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut }
   from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
 import { getFirestore, doc, onSnapshot, setDoc, increment, serverTimestamp }
   from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js';
@@ -670,10 +670,10 @@ async function doSignIn() {
   provider.setCustomParameters({ prompt: 'select_account' });
   try { await signInWithPopup(auth, provider); }
   catch (e) {
+    // no redirect fallback: on a non-Firebase domain modern browsers drop the redirect result
     if (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment') {
-      return signInWithRedirect(auth, provider);
-    }
-    if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
+      render('הדפדפן חסם את חלון ההתחברות. אפשר חלונות קופצים לאתר הזה ונסה שוב.');
+    } else if (e.code !== 'auth/popup-closed-by-user' && e.code !== 'auth/cancelled-popup-request') {
       console.warn(e); render('ההתחברות נכשלה. נסה שוב.');
     }
   }
