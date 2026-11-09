@@ -313,6 +313,8 @@ h1 {
   box-shadow: 0 0 0 1px var(--bad);
 }
 .choice:disabled { cursor: default; }
+.choice.sel { border-color: var(--accent); background: var(--accent-soft); }
+.choice.miss { box-shadow: inset 0 0 0 3px var(--ok); }
 
 /* Piano → Mentora .pk feel, keep .kb/.w/.b/.key class hooks used by JS */
 .kb {
@@ -843,6 +845,9 @@ td.num, td:has(.n) {
     { en: 'Locrian',    he: 'לוקרי',     st: [0,1,3,5,6,8,10], deg: 7, ch: [1,4],  desc: 'מינור עם −2 ו־−5' },
   ];
   const MAJ = MODES[0].st;
+  // alterations of a mode relative to major, e.g. Dorian -> ['b3','b7']
+  const modeAlts = m => m.st.map((s, i) => s - MAJ[i]).map((d, i) => d < 0 ? 'b' + (i + 1) : d > 0 ? '#' + (i + 1) : null).filter(Boolean);
+  const ALTS = ['b2','b3','#4','b5','b6','b7'];
   const spellMode = (r, m) => m.st.map((s, i) => onLetter(r.l + i, pc(r) + s));
   const maxAcc = arr => Math.max(...arr.map(n => Math.abs(n.a)));
   const pickMode = (lv, filter = () => true) => {
@@ -948,6 +953,21 @@ td.num, td:has(.n) {
           prompt: `מהו ${two ? 'אחד הצלילים האופייניים' : 'הצליל האופייני'} של <span class="big n">${nm(r)} ${m.en}</span>?`,
           kind: 'key', correct: m.ch.map(i => pc(notes[i])),
           explain: () => `${m.he} = ${m.desc}. ${two ? 'הצלילים האופייניים' : 'הצליל האופייני'}: ${m.ch.map(i => N(notes[i])).join(' ו־')}.`,
+        };
+      }},
+      { id: 'md-alter', title: 'שינויים ביחס למז\'ור', gen() {
+        const m = rnd(MODES), alt = modeAlts(m);
+        const order = 'מהבהיר לכהה: לידי (#4), יוני, מיקסולידי (b7), דורי (+b3), אאולי (+b6), פריגי (+b2), לוקרי (+b5). כל צעד מוסיף את הבמול הבא בסדר b7, b3, b6, b2, b5.';
+        const show = a => a.length ? `<span class="n">${a.join(' ')}</span>` : 'בלי שינוי';
+        if (Math.random() < .5) return {
+          prompt: `מהם השינויים של <span class="big">${m.he}</span> <span class="n">${m.en}</span> ביחס למז'ור?<br><span style="font-size:15px;color:var(--muted)">בחר את כל השינויים ולחץ "בדוק". אם אין שינוי, לא לבחור כלום.</span>`,
+          kind: 'multi', choices: ALTS.map(a => ({ label: a, value: a })), correct: alt,
+          explain: () => `${m.he}: ${show(alt)}. ${order}`,
+        };
+        return {
+          prompt: `איזה מודוס זה? ביחס למז'ור: <span class="big">${show(alt)}</span>`,
+          kind: 'choice', choices: MODES.map(x => ({ label: x.he, sub: x.en, value: x.en })), correct: m.en,
+          explain: () => `${show(alt)} = ${m.he}. ${order}`,
         };
       }},
     ]},
@@ -1096,6 +1116,31 @@ td.num, td:has(.n) {
         finish(ok, q.explain());
       });
     }
+    if (q.kind === 'multi') {
+      const sel = new Set(), want = new Set(q.correct);
+      const box = document.createElement('div'); box.className = 'choices';
+      box.innerHTML = q.choices.map((c, i) => `<button class="choice" id="ch-${i}" data-i="${i}" aria-pressed="false"><b>${c.label}</b></button>`).join('');
+      $('answer').appendChild(box);
+      box.querySelectorAll('.choice').forEach(b => b.onclick = () => {
+        if (done) return;
+        const v = q.choices[+b.dataset.i].value;
+        if (sel.has(v)) sel.delete(v); else sel.add(v);
+        b.classList.toggle('sel', sel.has(v)); b.setAttribute('aria-pressed', sel.has(v));
+      });
+      $('actions').innerHTML = `<button class="btn" id="check">בדוק</button>`;
+      $('check').onclick = () => {
+        if (done) return;
+        const ok = sel.size === want.size && [...sel].every(v => want.has(v));
+        box.querySelectorAll('.choice').forEach(x => {
+          const v = q.choices[+x.dataset.i].value;
+          x.disabled = true; x.classList.remove('sel');
+          if (want.has(v) && sel.has(v)) x.classList.add('ok');
+          else if (sel.has(v)) x.classList.add('bad');
+          else if (want.has(v)) x.classList.add('miss');
+        });
+        finish(ok, q.explain() + (ok ? '' : '<p style="font-size:13px">אדום: מיותר · מסגרת ירוקה: חסר.</p>'));
+      };
+    }
     if (q.kind === 'key') {
       const want = [].concat(q.correct);
       const kb = keyboard((p) => {
@@ -1160,8 +1205,8 @@ td.num, td:has(.n) {
   // reference tables
   $('reftable').innerHTML = '<tr><th>סימון</th><th>שם</th><th>חצאי טונים</th><th>טונים</th></tr>' +
     IV.map(i => `<tr><td>${S(i)}</td><td>${i.he}</td><td class="num">${i.s}</td><td class="num">${i.s / 2}</td></tr>`).join('');
-  $('modetable').innerHTML = '<tr><th>מודוס</th><th>לפי הספר</th><th>מדרגה בסולם האב</th><th>מ־C</th></tr>' +
-    MODES.map(m => `<tr><td>${m.he} <span class="n" style="font-weight:500">${m.en}</span></td><td>${m.desc}</td><td class="num">${m.deg}</td><td><span class="n" style="font-weight:500">${spellMode(parse('C'), m).map(nm).join(' ')}</span></td></tr>`).join('');
+  $('modetable').innerHTML = '<tr><th>מודוס</th><th>לפי הספר</th><th>ביחס למז\'ור</th><th>מדרגה בסולם האב</th><th>מ־C</th></tr>' +
+    MODES.map(m => `<tr><td>${m.he} <span class="n" style="font-weight:500">${m.en}</span></td><td>${m.desc}</td><td><span class="n">${modeAlts(m).join(' ') || '—'}</span></td><td class="num">${m.deg}</td><td><span class="n" style="font-weight:500">${spellMode(parse('C'), m).map(nm).join(' ')}</span></td></tr>`).join('');
 
   document.addEventListener('keydown', e => { if (e.key === 'Enter' && done && $('next') && document.activeElement !== $('next')) next(); });
   window.__test = { EX, pc, nm, parse, spellIv, IV, MODES, spellMode, onLetter };
