@@ -1,0 +1,7 @@
+{
+  "name": "harmony-practice",
+  "private": true,
+  "scripts": {
+    "test": "node tests/logic.test.js"
+  }
+}
