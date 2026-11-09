@@ -5,8 +5,8 @@ const assert = require('assert');
 
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 const core = html.slice(html.indexOf('// ---------- music core'), html.indexOf('// ---------- storage'));
-const { EX, pc, nm, parse, spellIv, IV, MODES, spellMode, onLetter } =
-  new Function(core + ';return {EX,pc,nm,parse,spellIv,IV,MODES,spellMode,onLetter};')();
+const { EX, pc, nm, parse, spellIv, IV, MODES, spellMode, onLetter, modeAlts } =
+  new Function(core + ';return {EX,pc,nm,parse,spellIv,IV,MODES,spellMode,onLetter,modeAlts};')();
 
 const iv = sym => IV.find(i => i.sym === sym);
 const mode = en => MODES.find(m => m.en === en);
@@ -25,6 +25,17 @@ check('mode spelling', () => {
   assert.strictEqual(spellMode(parse('F'), mode('Locrian')).map(nm).join(' '), 'F Gb Ab Bb Cb Db Eb');
   assert.strictEqual(spellMode(parse('D#'), mode('Dorian')).map(nm).join(' '), 'D# E# F# G# A# B# C#');
   assert.strictEqual(spellMode(parse('A'), mode('Mixolydian')).map(nm).join(' '), 'A B C# D E F# G');
+});
+
+check('mode alterations relative to major (course table)', () => {
+  const alts = en => modeAlts(mode(en)).join(' ');
+  assert.strictEqual(alts('Ionian'), '');
+  assert.strictEqual(alts('Dorian'), 'b3 b7');
+  assert.strictEqual(alts('Phrygian'), 'b2 b3 b6 b7');
+  assert.strictEqual(alts('Lydian'), '#4');
+  assert.strictEqual(alts('Mixolydian'), 'b7');
+  assert.strictEqual(alts('Aeolian'), 'b3 b6 b7');
+  assert.strictEqual(alts('Locrian'), 'b2 b3 b5 b6 b7');
 });
 
 check('chromatic degrees (notebook examples)', () => {
