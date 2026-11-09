@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1216">
+<title>מדיניות פרטיות – הַרְמוֹנָה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap">
+<style>
+:root {
+  --bg: #0f1216; --bg2: #0a0c0f; --card: #171b21; --card2: #1f252d;
+  --line: #2a3039; --line2: #3d4550; --text: #e7eaee; --muted: #9aa4b1;
+  --accent: #ffb020; --accent-t: #ffc24d; --accent-soft: #3a2d12; --on-accent: #1a1206;
+  --accent-fill: #ffb020; --good: #3ddc97; --radius: 8px;
+  --shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 2px 8px rgba(0,0,0,.35);
+  --font: "Rubik", "Heebo", "Segoe UI", "Arial Hebrew", Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  background: var(--bg); color: var(--text); font-family: var(--font);
+  font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased;
+  padding: max(20px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+           max(40px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+.wrap { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.brand-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.brand-mark {
+  width: 40px; height: 40px; border-radius: 8px; background: var(--card2);
+  border: 1px solid var(--line); display: grid; place-items: center; flex: none;
+  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.brand-text b {
+  display: block; font-size: 15px; font-weight: 800; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--accent-t);
+}
+.brand-text span { font-size: 13px; color: var(--muted); }
+h1 { font-size: clamp(26px, 6vw, 34px); font-weight: 800; margin: 0; letter-spacing: .01em; }
+.sub { color: var(--muted); font-size: 14px; margin: 4px 0 0; }
+.card {
+  background: linear-gradient(180deg, var(--card2), var(--card) 60px);
+  border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px;
+  box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 10px;
+}
+.card h2 { margin: 0; font-size: 18px; color: var(--accent-t); }
+.card p, .card li { margin: 0; color: var(--text); }
+.card ul { margin: 0; padding-inline-start: 1.2em; display: flex; flex-direction: column; gap: 6px; }
+a { color: var(--accent-t); }
+.meta { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: 10px 18px; border-radius: 6px; font: inherit; font-weight: 700;
+  text-decoration: none; background: var(--accent-fill); color: var(--on-accent);
+  border: 1px solid var(--accent-fill);
+  box-shadow: 0 0 0 1px var(--accent-fill), 0 0 16px color-mix(in srgb, var(--accent) 30%, transparent);
+  width: fit-content;
+}
+.btn.ghost {
+  background: transparent; color: var(--accent-t); border-color: var(--accent); box-shadow: none;
+}
+.en { direction: ltr; text-align: left; font-size: 14.5px; }
+.en h2 { color: var(--accent-t); font-size: 16px; margin: 0 0 6px; }
+.divider { border: 0; border-top: 1px solid var(--line); margin: 8px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand-row">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 16V8l4 3 4-5 4 4 4-2v8H4z" stroke="#ffb020" stroke-width="1.8" stroke-linejoin="round"/>
+          <circle cx="12" cy="18.5" r="1.2" fill="#3ddc97"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <b>הַרְמוֹנָה</b>
+        <span>Harmona · משפחת מנטורה</span>
+      </div>
+    </div>
+    <h1>מדיניות פרטיות</h1>
+    <p class="sub">עודכן: <span class="meta" dir="ltr">2026-11-09</span> · אפליקציית תרגול הרמוניה</p>
+  </header>
+
+  <section class="card">
+    <h2>מי אנחנו</h2>
+    <p><strong>הַרְמוֹנָה (Harmona)</strong> היא אפליקציית רשת לתרגול הרמוניה (מרווחים, מודוסים ודרגות כרומטיות), חלק ממשפחת מנטורה. האתר: <a href="https://deadpaul134.github.io/harmony-practice/" dir="ltr">deadpaul134.github.io/harmony-practice</a>.</p>
+  </section>
+
+  <section class="card">
+    <h2>אילו נתונים נאספים</h2>
+    <ul>
+      <li><strong>חשבון Google (אופציונלי):</strong> בעת התחברות דרך Firebase Authentication נשמרים מזהה המשתמש (uid), ומוצגים לנו שם התצוגה והאימייל של חשבון Google לצורך זיהוי בממשק.</li>
+      <li><strong>התקדמות בתרגול:</strong> סטטיסטיקות תרגול, נקודות XP, רצף ימים, יעדים יומיים ויומן סטים. הנתונים נשמרים ב־localStorage בדפדפן, ואם התחברתם — גם ב־Cloud Firestore במסמך <span class="meta" dir="ltr">users/{uid}</span>.</li>
+      <li><strong>העדפות ממשק:</strong> למשל נושא תרגול, רמה, והשתקת צלילים (בעיקר מקומית בדפדפן).</li>
+    </ul>
+    <p>לא נאספים מספרי כרטיס אשראי, מיקום מדויק, אנשי קשר או תוכן מהטלפון מעבר למה שמתואר כאן.</p>
+  </section>
+
+  <section class="card">
+    <h2>למה משתמשים בנתונים</h2>
+    <p>רק כדי לספק את שירות התרגול: לשמור התקדמות, לסנכרן אותה בין מכשירים אחרי התחברות Google, ולהציג סטטיסטיקות ורצפים בתוך האפליקציה.</p>
+  </section>
+
+  <section class="card">
+    <h2>שיתוף, פרסומות ומעקב</h2>
+    <ul>
+      <li>אנחנו <strong>לא מוכרים</strong> נתונים אישיים ולא משתפים אותם עם צדדים שלישיים למטרות פרסום.</li>
+      <li>בגרסה הנוכחית <strong>אין פרסומות</strong> ו<strong>אין כלי אנליטיקס / מעקב צד־שלישי</strong> באפליקציה (מעבר לתשתית Google/Firebase עצמה לצורך התחברות ואחסון).</li>
+      <li>ספקי התשתית: Google Firebase Authentication ו־Cloud Firestore, ו־GitHub Pages לאירוח הקבצים הסטטיים.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>מחיקה ואיפוס</h2>
+    <ul>
+      <li>באפליקציה אפשר לאפס התקדמות מקומית דרך כפתור <strong>איפוס התקדמות</strong> במסך התרגול.</li>
+      <li>למחיקת חשבון / נתונים בענן או לכל בקשת פרטיות — פנו אלינו באימייל: <a href="mailto:deadpaul196@gmail.com" dir="ltr">deadpaul196@gmail.com</a>.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>יצירת קשר</h2>
+    <p>שאלות על פרטיות: <a href="mailto:deadpaul196@gmail.com" dir="ltr">deadpaul196@gmail.com</a></p>
+    <p class="meta">תאריך עדכון: 2026-11-09</p>
+  </section>
+
+  <hr class="divider">
+
+  <section class="card en" lang="en">
+    <h2>Privacy Policy (English summary)</h2>
+    <p><strong>Harmona (הַרְמוֹנָה)</strong> is a web app for harmony practice. Optional Google sign-in via Firebase Auth uses your Google account <em>uid</em>, and shows your display name/email in the UI. Practice progress (stats, XP, streak, daily goals, session log) is stored in the browser’s <em>localStorage</em> and, when signed in, in Firestore at <span class="meta">users/{uid}</span>.</p>
+    <p>Data is used only to provide and sync practice progress. We do not sell personal data. This build has no ads and no third-party analytics beyond Google/Firebase for auth and storage, and GitHub Pages for hosting.</p>
+    <p>You can reset local progress in the app. To delete cloud data or for privacy requests, email <a href="mailto:deadpaul196@gmail.com">deadpaul196@gmail.com</a>. Last updated: 2026-11-09.</p>
+  </section>
+
+  <p><a class="btn ghost" href="./">חזרה להַרְמוֹנָה</a></p>
+</div>
+</body>
+</html>
