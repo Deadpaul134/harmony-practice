@@ -1,7 +1,7 @@
 /* Harmona service worker: versioned app-shell cache for offline; network-first HTML.
    Bump VERSION on every release that changes cached files. */
 "use strict";
-var VERSION = "ha-v2";
+var VERSION = "ha-v3";
 var APP = "ha-app-" + VERSION;
 var FILES = [
   "./",
