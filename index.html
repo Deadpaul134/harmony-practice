@@ -325,15 +325,24 @@ h1 {
 .choice.sel { border-color: var(--accent); background: var(--accent-soft); }
 .choice.miss { box-shadow: inset 0 0 0 3px var(--ok); }
 
-/* Piano → Mentora .pk feel, keep .kb/.w/.b/.key class hooks used by JS */
+/* Piano → Mentora .pk feel, keep .kb/.w/.b/.key class hooks used by JS.
+   Two octaves (C–B, 14 white keys). On narrow screens the keyboard scrolls. */
+.kb-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  direction: ltr; /* piano reads low→high left-to-right even on the RTL page */
+}
 .kb {
   position: relative;
   height: 150px;
   direction: ltr;
   user-select: none;
-  max-width: 520px;
   width: 100%;
-  margin: 0 auto;
+  min-width: 520px;
+  max-width: 960px;
+  margin: 0;
   background: var(--bg2);
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -344,7 +353,7 @@ h1 {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: calc(100% / 7);
+  width: calc(100% / 14);
   background: linear-gradient(180deg, #e3e6ea, var(--key-w) 14%);
   border: 1px solid var(--key-w-line);
   border-radius: 0 0 5px 5px;
@@ -356,13 +365,13 @@ h1 {
   font-family: var(--mono);
   font-weight: 600;
   color: #4a525c;
-  font-size: 14px;
+  font-size: 13px;
 }
 .kb .b {
   position: absolute;
   top: 0;
   height: 60%;
-  width: calc(100% / 7 * .6);
+  width: calc(100% / 14 * .6);
   background: linear-gradient(180deg, #2a2f36, var(--key-b) 70%);
   border-radius: 0 0 5px 5px;
   cursor: pointer;
@@ -524,6 +533,9 @@ td.num, td:has(.n) {
 @media (prefers-reduced-motion: no-preference) {
   .fb { animation: rise .18s ease-out; }
   @keyframes rise { from { transform: translateY(4px); opacity: .4; } to { transform: none; opacity: 1; } }
+}
+@media (min-width: 900px) {
+  #screen-practice.wrap { max-width: 980px; }
 }
 @media (max-width: 420px) {
   .tab { padding: 10px 10px; font-size: 14px; }
@@ -1089,19 +1101,37 @@ td.num, td:has(.n) {
     };
   }
 
-  // keyboard: pcs of white keys and black keys with their x position (in white-key units)
+  // keyboard: two octaves (C–B), 14 white keys. Positions are in white-key units.
+  // data-pc is the pitch class (0–11); the same class appears once per octave.
   const WH = [0,2,4,5,7,9,11], BL = [[1,1],[3,2],[6,4],[8,5],[10,6]];
+  const KB_OCTAVES = 2, KB_WHITES = 7 * KB_OCTAVES;
   function keyboard(onPress) {
     const el = document.createElement('div');
     el.className = 'kb';
-    el.innerHTML = WH.map((p, i) => `<div class="key w" role="button" tabindex="0" aria-label="${LET[i]}" data-pc="${p}" style="left:calc(100% / 7 * ${i})">${LET[i]}</div>`).join('') +
-      BL.map(([p, x]) => `<div class="key b" role="button" tabindex="0" aria-label="${SIMPLE[p].l >= 0 ? nm(SIMPLE[p]) : ''}" data-pc="${p}" style="left:calc(100% / 7 * ${x} - 100% / 7 * .3)"></div>`).join('');
+    const whites = [], blacks = [];
+    for (let o = 0; o < KB_OCTAVES; o++) {
+      WH.forEach((p, i) => {
+        const x = o * 7 + i;
+        whites.push(`<div class="key w" role="button" tabindex="0" aria-label="${LET[i]} אוקטבה ${o + 1}" data-pc="${p}" data-oct="${o}" style="left:calc(100% / ${KB_WHITES} * ${x})">${LET[i]}</div>`);
+      });
+      BL.forEach(([p, x0]) => {
+        const x = o * 7 + x0;
+        const lab = SIMPLE[p].l >= 0 ? nm(SIMPLE[p]) : '';
+        blacks.push(`<div class="key b" role="button" tabindex="0" aria-label="${lab ? lab + ' אוקטבה ' + (o + 1) : ''}" data-pc="${p}" data-oct="${o}" style="left:calc(100% / ${KB_WHITES} * ${x} - 100% / ${KB_WHITES} * .3)"></div>`);
+      });
+    }
+    el.innerHTML = whites.join('') + blacks.join('');
     el.querySelectorAll('.key').forEach(k => {
       const go = () => { if (!el.classList.contains('locked')) onPress(+k.dataset.pc, k); };
       k.onclick = go; k.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } };
     });
-    el.mark = (p, c) => el.querySelector(`[data-pc="${p}"]`).classList.add(c);
+    el.mark = (p, c) => el.querySelectorAll(`[data-pc="${p}"]`).forEach(k => k.classList.add(c));
     el.clear = () => el.querySelectorAll('.key').forEach(k => k.classList.remove('sel', 'ok', 'bad', 'miss'));
+    el.setPc = (p, on) => el.querySelectorAll(`[data-pc="${p}"]`).forEach(k => k.classList.toggle('sel', on));
+    const wrap = document.createElement('div');
+    wrap.className = 'kb-scroll';
+    wrap.appendChild(el);
+    el.wrap = wrap;
     return el;
   }
 
@@ -1189,14 +1219,18 @@ td.num, td:has(.n) {
         if (!ok) kb.mark(p, 'bad');
         finish(ok, q.explain());
       });
-      $('answer').appendChild(kb);
+      $('answer').appendChild(kb.wrap);
       $('answer').insertAdjacentHTML('beforeend', '<p class="hint">לחץ על הקליד. כל שם שנשמע אותו דבר נחשב נכון.</p>');
     }
     if (q.kind === 'keys') {
       const sel = new Set(), want = new Set(q.correct);
-      const kb = keyboard((p, k) => { if (sel.has(p)) { sel.delete(p); k.classList.remove('sel'); } else { sel.add(p); k.classList.add('sel'); } });
-      $('answer').appendChild(kb);
-      $('answer').insertAdjacentHTML('beforeend', '<p class="hint">בחר 7 קלידים ולחץ "בדוק". לחיצה נוספת מבטלת.</p>');
+      const kb = keyboard((p) => {
+        if (done) return;
+        if (sel.has(p)) sel.delete(p); else sel.add(p);
+        kb.setPc(p, sel.has(p));
+      });
+      $('answer').appendChild(kb.wrap);
+      $('answer').insertAdjacentHTML('beforeend', '<p class="hint">בחר 7 צלילים (מכל אוקטבה) ולחץ "בדוק". לחיצה נוספת על אותו צליל מבטלת.</p>');
       $('actions').innerHTML = `<button class="btn" id="check">בדוק</button>`;
       $('check').onclick = () => {
         if (done) return;
@@ -1234,7 +1268,7 @@ td.num, td:has(.n) {
           `${N(s.from)} ${S(s.iv)}${arrow(s.dir)} = ${s.iv.s} חצאי טונים ${s.dir > 0 ? 'למעלה' : 'למטה'} ← ${N(s.to)}${sounds(s.to)}`).join('<br>'));
       } else draw();
     });
-    $('answer').appendChild(kb);
+    $('answer').appendChild(kb.wrap);
     $('answer').insertAdjacentHTML('beforeend', '<p class="hint">לחץ קליד לכל צעד. ירוק מראה את התשובה הנכונה של הצעד הקודם.</p>');
   }
 
