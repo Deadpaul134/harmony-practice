@@ -732,6 +732,28 @@ td.num, td:has(.n) {
 .ios-hint b { color: var(--accent-t); }
 .home-install { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
 
+.share-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 8px 14px; flex: none; white-space: nowrap;
+  border-radius: 6px; border: 1px solid var(--line2);
+  background: var(--card2); color: var(--muted-t);
+  cursor: pointer; font: inherit; font-weight: 700; font-size: 14px;
+}
+.share-btn svg { width: 18px; height: 18px; }
+.share-btn:hover { color: var(--accent-t); border-color: var(--accent); background: var(--accent-soft, var(--card2)); }
+.hello-copy { min-width: 0; flex: 1; }
+.header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: none; }
+.hello-copy .lead { margin-bottom: 0; }
+.share-toast {
+  position: fixed; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); left: 50%;
+  transform: translateX(-50%) translateY(30px);
+  background: var(--text); color: var(--bg);
+  padding: 12px 22px; border-radius: 6px; font-size: 15px;
+  opacity: 0; pointer-events: none; transition: .25s; z-index: 70;
+  max-width: min(92vw, 640px); text-align: center;
+}
+.share-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
 </style>
 </head>
 <body>
@@ -741,8 +763,11 @@ td.num, td:has(.n) {
 <section class="screen wrap" id="screen-home" data-screen="home">
   <div class="hud" id="homeHud"></div>
   <header class="hello">
-    <h1 id="homeTitle">שלום</h1>
-    <p class="lead" id="homeLead">כמה דקות של הרמוניה — מרווחים, מודוסים ודרגות.</p>
+    <div class="hello-copy">
+      <h1 id="homeTitle">שלום</h1>
+      <p class="lead" id="homeLead">כמה דקות של הרמוניה — מרווחים, מודוסים ודרגות.</p>
+    </div>
+    <button type="button" class="share-btn" data-share-app aria-label="שתף קישור להרמונה"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg><span>שתף</span></button>
   </header>
   <div class="card">
     <div class="qhead"><span>מטרה יומית</span><b id="homeGoalLabel">0/25</b></div>
@@ -787,7 +812,10 @@ td.num, td:has(.n) {
       <h1>תרגול הרמוניה א'</h1>
       <p class="sub">מרווחים, מודוסים ודרגות כרומטיות · נבדק לפי שיטת הספר: כל שם שנשמע נכון מתקבל</p>
     </div>
-    <div class="acct" id="acct" hidden></div>
+    <div class="header-actions">
+      <button type="button" class="share-btn" data-share-app aria-label="שתף קישור להרמונה"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg><span>שתף</span></button>
+      <div class="acct" id="acct" hidden></div>
+    </div>
   </header>
 
   <nav class="tabs" role="tablist" id="tabs"></nav>
@@ -835,9 +863,12 @@ td.num, td:has(.n) {
 </section>
 
 <section class="screen wrap" id="screen-progress" data-screen="progress" hidden>
-  <div class="scr-h" style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
+  <div class="scr-h" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
     <h1 style="margin:0;font-size:28px">התקדמות</h1>
-    <span class="prog-meta" id="progMeta"></span>
+    <div class="header-actions">
+      <button type="button" class="share-btn" data-share-app aria-label="שתף קישור להרמונה"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg><span>שתף</span></button>
+      <span class="prog-meta" id="progMeta"></span>
+    </div>
   </div>
   <div class="hud" id="progHud"></div>
   <div class="card">
@@ -1663,6 +1694,54 @@ render();
   if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
     navigator.serviceWorker.register("sw.js").catch(() => null);
   }
+
+  const SHARE = {
+    url: "https://harmona-music.pages.dev/",
+    title: "הַרְמוֹנָה",
+    text: "הַרְמוֹנָה – תרגול הרמוניה: מרווחים, מודוסים ודרגות כרומטיות."
+  };
+  const shareToast = document.createElement("div");
+  shareToast.id = "shareToast";
+  shareToast.className = "share-toast";
+  shareToast.setAttribute("role", "status");
+  document.body.appendChild(shareToast);
+  let shareToastTimer = null;
+  function showShareToast(msg) {
+    shareToast.textContent = msg;
+    shareToast.classList.add("show");
+    clearTimeout(shareToastTimer);
+    shareToastTimer = setTimeout(() => shareToast.classList.remove("show"), 2600);
+  }
+  function copyShareUrl(url) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(url);
+    }
+    return new Promise((resolve, reject) => {
+      const ta = document.createElement("textarea");
+      ta.value = url;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      try { if (document.execCommand("copy")) resolve(); else reject(new Error("copy failed")); }
+      catch (e) { reject(e); }
+      document.body.removeChild(ta);
+    });
+  }
+  function shareApp() {
+    const payload = { title: SHARE.title, text: SHARE.text, url: SHARE.url };
+    const share = (navigator.share)
+      ? navigator.share(payload)
+      : Promise.reject(new Error("no-share"));
+    return share.catch((err) => {
+      if (err && err.name === "AbortError") return;
+      return copyShareUrl(SHARE.url).then(() => showShareToast("הקישור הועתק"));
+    });
+  }
+  document.querySelectorAll("[data-share-app]").forEach((btn) => {
+    btn.addEventListener("click", () => { shareApp(); });
+  });
 })();
 </script>
 
