@@ -137,7 +137,7 @@ h1 {
 }
 .sub { color: var(--muted-t); font-size: 14px; margin: 6px 0 0; }
 .staff { display: none; }
-.n, .ltr {
+.n {
   font-family: var(--mono);
   font-weight: 600;
   direction: ltr;
@@ -145,12 +145,59 @@ h1 {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
+bdi.tok {
+  display: inline-block;
+  direction: ltr;
+  unicode-bidi: isolate;
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-weight: 600;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  vertical-align: baseline;
+  text-align: left;
+  padding-inline: 0.06em;
+}
+bdi.tok .acc {
+  display: inline-block;
+  width: 0.62em;
+  height: 1.2em;
+  vertical-align: -0.18em;
+  margin-inline-end: 0.08em;
+  overflow: visible;
+}
+bdi.tok .acc-flat {
+  width: 0.58em;
+  height: 1.25em;
+  vertical-align: -0.22em;
+  transform: skewX(-8deg);
+  transform-origin: 50% 100%;
+}
+bdi.tok .acc-sharp {
+  width: 0.68em;
+  height: 1.2em;
+  vertical-align: -0.18em;
+}
+.formula {
+  display: block;
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: center;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 1.2;
+  margin: 6px 0 2px;
+}
+.formula bdi.tok { font-size: 1em; font-weight: 700; }
+.formula bdi.tok .acc { width: 0.68em; height: 1.25em; vertical-align: -0.14em; }
+.formula bdi.tok .acc-sharp { width: 0.74em; height: 1.3em; }
 .prompt .task {
   display: block;
   font-size: 16px;
   font-weight: 500;
   color: var(--text);
-  margin-top: 8px;
+  margin-top: 10px;
   line-height: 1.55;
   text-wrap: pretty;
 }
@@ -844,12 +891,19 @@ td.num, td:has(.n) {
   const acc = a => a > 0 ? '#'.repeat(a) : 'b'.repeat(-a);
   const nm = n => LET[n.l] + acc(n.a);
   // Display-only typography. nm() stays ASCII (#/b) for data, keys, and tests.
+  // Accidentals are inline SVGs: U+266D/U+266F are bidi-neutral and often missing from mono fonts.
   const accPretty = a => a > 0 ? '♯'.repeat(a) : '♭'.repeat(-a);
   const nmPretty = n => LET[n.l] + accPretty(n.a);
   const degPretty = d => d.replace(/#/g, '♯').replace(/b/g, '♭');
-  const N = n => `<span class="n" dir="ltr">${nmPretty(n)}</span>`;
-  const D = d => `<span class="n" dir="ltr">${degPretty(d)}</span>`;
-  const formula = html => `<span class="big ltr" dir="ltr">${html}</span>`;
+  const ACC_FLAT = '<svg class="acc acc-flat" viewBox="0 0 12 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M2.55 0h2.05v14.35c.85-.62 1.85-.95 2.95-.95 2.35 0 3.85 1.72 3.85 3.85 0 2.7-2.35 5.35-5.55 5.35-1.15 0-2.2-.35-3.3-1.05V0zm2.05 16.15v4.15c.62.5 1.38.75 2.2.75 1.82 0 2.95-1.32 2.95-3.05 0-1.28-.88-2.12-2.28-2.12-.95 0-1.95.38-2.87 1.27z"/></svg>';
+  const ACC_SHARP = '<svg class="acc acc-sharp" viewBox="0 0 14 22" aria-hidden="true" focusable="false"><path fill="currentColor" d="M4.35 1.1h2.05L5.55 20.9H3.5L4.35 1.1zm4.85-1.1h2.05L10.4 19.7H8.35L9.2 0zM1.05 12.85l11.7-2.55.42 1.95-11.7 2.55-.42-1.95zM.85 8.15l11.7-2.55.42 1.95L1.27 10.1l-.42-1.95z"/></svg>';
+  const accHTML = a => a > 0 ? ACC_SHARP.repeat(a) : a < 0 ? ACC_FLAT.repeat(-a) : '';
+  const nmHTML = n => LET[n.l] + accHTML(n.a);
+  const degHTML = d => (d[0] === '#' ? ACC_SHARP : ACC_FLAT) + `<span class="deg-n">${d.slice(1)}</span>`;
+  const tok = (html, sym) => `<bdi class="tok" dir="ltr" data-sym="${sym}" aria-label="${sym}">${html}</bdi>`;
+  const N = n => tok(nmHTML(n), nmPretty(n));
+  const D = d => tok(degHTML(d), degPretty(d));
+  const formula = html => `<div class="formula" dir="ltr">${html}</div>`;
   const parse = s => ({ l: LET.indexOf(s[0]), a: s.slice(1).split('').reduce((t, c) => t + (c === '#' ? 1 : -1), 0) });
   const SIMPLE = ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'].map(parse);
   const simple = p => SIMPLE[mod(p, 12)];
@@ -925,7 +979,7 @@ td.num, td:has(.n) {
       if (maxAcc(notes) <= (lv === 3 ? 2 : 1)) return { r, m, notes };
     }
   };
-  const seqHTML = (notes, extra = () => '') => `<div class="seq">${notes.map((n, i) => `<div class="cell${extra(i)}">${nmPretty(n)}</div>`).join('')}</div>`;
+  const seqHTML = (notes, extra = () => '') => `<div class="seq">${notes.map((n, i) => `<div class="cell${extra(i)}">${N(n)}</div>`).join('')}</div>`;
 
   const DEGS = ['#1','b2','#2','b3','#4','b5','#5','b6','#6','b7'];
   const degParse = d => ({ alt: d[0] === '#' ? 1 : -1, deg: +d.slice(1) });
@@ -1049,11 +1103,11 @@ td.num, td:has(.n) {
       }},
       { id: 'md-alter', title: 'שינויים ביחס למז\'ור', gen() {
         const m = rnd(MODES), alt = modeAlts(m);
-        const order = 'מהבהיר לכהה: לידי (♯4), יוני, מיקסולידי (♭7), דורי (+♭3), אאולי (+♭6), פריגי (+♭2), לוקרי (+♭5). כל צעד מוסיף את הבמול הבא בסדר ♭7, ♭3, ♭6, ♭2, ♭5.';
-        const show = a => a.length ? `<span class="n">${a.map(degPretty).join(' ')}</span>` : 'בלי שינוי';
+        const order = `מהבהיר לכהה: לידי (${D('#4')}), יוני, מיקסולידי (${D('b7')}), דורי (+${D('b3')}), אאולי (+${D('b6')}), פריגי (+${D('b2')}), לוקרי (+${D('b5')}). כל צעד מוסיף את הבמול הבא בסדר ${D('b7')}, ${D('b3')}, ${D('b6')}, ${D('b2')}, ${D('b5')}.`;
+        const show = a => a.length ? `<span dir="ltr">${a.map(D).join(' ')}</span>` : 'בלי שינוי';
         if (Math.random() < .5) return {
           prompt: `מהם השינויים של <span class="big">${m.he}</span> <span class="n">${m.en}</span> ביחס למז'ור?<br><span style="font-size:15px;color:var(--muted)">בחר את כל השינויים ולחץ "בדוק". אם אין שינוי, לא לבחור כלום.</span>`,
-          kind: 'multi', choices: ALTS.map(a => ({ label: degPretty(a), value: a })), correct: alt,
+          kind: 'multi', choices: ALTS.map(a => ({ label: D(a), value: a })), correct: alt,
           explain: () => `${m.he}: ${show(alt)}. ${order}`,
         };
         return {
@@ -1320,7 +1374,7 @@ td.num, td:has(.n) {
   $('reftable').innerHTML = '<tr><th>סימון</th><th>שם</th><th>חצאי טונים</th><th>טונים</th></tr>' +
     IV.map(i => `<tr><td>${S(i)}</td><td>${i.he}</td><td class="num">${i.s}</td><td class="num">${i.s / 2}</td></tr>`).join('');
   $('modetable').innerHTML = '<tr><th>מודוס</th><th>לפי הספר</th><th>ביחס למז\'ור</th><th>מדרגה בסולם האב</th><th>מ־C</th></tr>' +
-    MODES.map(m => `<tr><td>${m.he} <span class="n" style="font-weight:500">${m.en}</span></td><td>${m.desc}</td><td><span class="n">${modeAlts(m).map(degPretty).join(' ') || '—'}</span></td><td class="num">${m.deg}</td><td><span class="n" style="font-weight:500">${spellMode(parse('C'), m).map(nmPretty).join(' ')}</span></td></tr>`).join('');
+    MODES.map(m => `<tr><td>${m.he} <span class="n" style="font-weight:500">${m.en}</span></td><td>${m.desc}</td><td><span dir="ltr">${modeAlts(m).map(D).join(' ') || '—'}</span></td><td class="num">${m.deg}</td><td><span dir="ltr">${spellMode(parse('C'), m).map(N).join(' ')}</span></td></tr>`).join('');
 
   document.addEventListener('keydown', e => { if (e.key === 'Enter' && done && $('next') && document.activeElement !== $('next')) next(); });
   window.__test = { EX, pc, nm, parse, spellIv, IV, MODES, spellMode, onLetter, modeAlts, nmPretty, degPretty, DEG_HE, degParse, MAJ, chromaRootOf, chromaNoteInKey, KEYS };

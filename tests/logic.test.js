@@ -117,7 +117,7 @@ check('every generator, every level, 2000 times', () => {
       if (ty.id === 'md-build') assert.strictEqual(new Set(q.correct).size, 7);
       if (ty.id === 'md-alter' && q.kind === 'multi') {
         assert.ok(q.choices.every(c => /^[b#][1-7]$/.test(c.value)), 'alt values stay ASCII');
-        assert.ok(q.choices.every(c => /[♯♭]/.test(c.label)), 'alt labels are pretty');
+        assert.ok(q.choices.every(c => /class="tok" dir="ltr"/.test(c.label) && /data-sym="[♯♭]/.test(c.label)), 'alt labels are LTR tokens');
       }
     }
   }
