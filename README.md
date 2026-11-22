@@ -27,3 +27,20 @@ npm test
 ```
 
 (or `node tests/logic.test.js`)
+
+## Piano sound
+
+Lessons play a sampled grand piano (`js/piano-sampler.js`, samples in
+`assets/piano/`, one every minor third A1–C7, 22 mono MP3 files, ~612 KB).
+Samples load lazily after the first tap, octaves C3–C6 first; until a sample is
+decoded (or if it fails) that note uses the small built-in synth. The service
+worker precaches 8 core samples and caches the rest on first use
+(`ha-piano-v1` cache, kept across app versions).
+
+## Credits / קרדיטים
+
+- צלילי פסנתר: Salamander Grand Piano V3 מאת Alexander Holm, ברישיון CC BY 3.0
+  (https://creativecommons.org/licenses/by/3.0/). See `assets/piano/LICENSE.txt`.
+- Piano sounds: Salamander Grand Piano V3 by Alexander Holm, licensed
+  [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). Samples trimmed to
+  3.5 s with a fade-out and converted to mono 64 kbps MP3.
