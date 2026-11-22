@@ -772,7 +772,8 @@ check('service worker precaches the new files', () => {
     assert.ok(sw.includes('"' + f + '"'), f);
     assert.ok(fs.existsSync(path.join(__dirname, '..', f)), f + ' exists');
   }
-  assert.ok(/VERSION = "ha-v6"/.test(sw), 'cache version bumped to ha-v6 for worlds 6-8');
+  const v = /VERSION = "ha-v(\d+)"/.exec(sw);
+  assert.ok(v && +v[1] >= 6, 'cache version bumped to ha-v6 or later for worlds 6-8');
 });
 
 console.log(`\n${passed} kids checks passed`);
