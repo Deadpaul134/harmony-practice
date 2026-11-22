@@ -89,19 +89,201 @@ check('II-V-I, secondary dominants, blues', () => {
   assert.deepStrictEqual(M.blues('C'), 'C7 C7 C7 C7 F7 F7 C7 C7 G7 F7 C7 G7'.split(' '));
 });
 
+/* ---------- worlds 6-8 theory (book pp. 33-36, 45-57, 65-70, 101-102) ---------- */
+const bare = (arr) => arr.map(M.bare).join(' ');
+check('new chord qualities: semitones and spelling', () => {
+  const sp = (s) => M.chordNotes(s, 3).map(M.bare).join(' ');
+  const st = (s) => { const n = M.chordNotes(s, 3); return n.map((x) => M.semis(n[0], x)).join(','); };
+  assert.strictEqual(sp('C-maj7'), 'C Eb G B');      assert.strictEqual(st('C-maj7'), '0,3,7,11');
+  assert.strictEqual(sp('Ebmaj7#5'), 'Eb G B D');    assert.strictEqual(st('Ebmaj7#5'), '0,4,8,11');
+  assert.strictEqual(sp('C-6'), 'C Eb G A');         assert.strictEqual(st('C-6'), '0,3,7,9');
+  assert.strictEqual(sp('G7b9'), 'G B D F Ab');      assert.strictEqual(st('G7b9'), '0,4,7,10,13');
+  assert.strictEqual(sp('B7alt'), 'B D# A C G');     assert.strictEqual(st('B7alt'), '0,4,10,13,20');
+  assert.strictEqual(sp('Db7'), 'Db F Ab Cb');       assert.strictEqual(st('Db7'), '0,4,7,10');
+  assert.strictEqual(sp('B°7'), 'B D F Ab');         assert.strictEqual(st('B°7'), '0,3,6,9');
+  assert.strictEqual(sp('Ab-7'), 'Ab Cb Eb Gb');
+  assert.strictEqual(sp('E7b9'), 'E G# B D F');
+});
+
+check('three minor scales (book pp. 50, 54): steps and spelling', () => {
+  assert.strictEqual(bare(M.minorScale('C4', 'natural')), 'C D Eb F G Ab Bb C');
+  assert.strictEqual(bare(M.minorScale('C4', 'harmonic')), 'C D Eb F G Ab B C');
+  assert.strictEqual(bare(M.minorScale('C4', 'melodic')), 'C D Eb F G A B C');
+  assert.strictEqual(bare(M.minorScale('A3', 'natural')), 'A B C D E F G A');
+  assert.strictEqual(bare(M.minorScale('A3', 'harmonic')), 'A B C D E F G# A');
+  assert.strictEqual(bare(M.minorScale('A3', 'melodic')), 'A B C D E F# G# A');
+  for (const t of ['natural', 'harmonic', 'melodic']) for (const k of ['C4', 'A3', 'D4', 'G3']) {
+    const s = M.minorScale(k, t);
+    assert.deepStrictEqual(s.slice(1).map((n, i) => M.semis(s[i], n)), M.STEPS[t], t + ' ' + k);
+    assert.strictEqual(new Set(s.slice(0, 7).map((n) => M.note(n).l)).size, 7, 'one letter per degree');
+  }
+  // natural minor = relative major's notes
+  assert.strictEqual(pcs(M.minorScale('A3', 'natural').slice(0, 7)), pcs(M.majorScale('C4').slice(0, 7)));
+});
+
+check('minor degrees vs major: b3 b6 b7 (natural), 7 back in harmonic, 6 and 7 in melodic', () => {
+  assert.deepStrictEqual(M.degreeNames('C', 'natural'), ['1', '2', 'b3', '4', '5', 'b6', 'b7']);
+  assert.deepStrictEqual(M.degreeNames('C', 'harmonic'), ['1', '2', 'b3', '4', '5', 'b6', '7']);
+  assert.deepStrictEqual(M.degreeNames('C', 'melodic'), ['1', '2', 'b3', '4', '5', '6', '7']);
+  assert.deepStrictEqual(M.degreeNames('A', 'natural'), ['1', '2', 'b3', '4', '5', 'b6', 'b7']);
+  assert.strictEqual(M.semis('C4', 'Eb4'), 3);
+  assert.strictEqual(M.semis('C4', 'Ab4'), 8);
+  assert.strictEqual(M.semis('C4', 'Bb4'), 10);
+});
+
+check('seventh chords in minor match the book tables (pp. 50, 51, 54)', () => {
+  const t = (type) => M.diatonicSevenths('C', type);
+  assert.deepStrictEqual(t('natural').map((x) => x.sym), ['C-7', 'D-7b5', 'Ebmaj7', 'F-7', 'G-7', 'Abmaj7', 'Bb7']);
+  assert.deepStrictEqual(t('natural').map((x) => x.roman), ['I-7', 'II-7b5', 'bIIImaj7', 'IV-7', 'V-7', 'bVImaj7', 'bVII7']);
+  assert.deepStrictEqual(t('harmonic').map((x) => x.roman), ['I-maj7', 'II-7b5', 'bIIImaj7#5', 'IV-7', 'V7', 'bVImaj7', 'VII°7']);
+  assert.deepStrictEqual(t('harmonic').map((x) => x.sym), ['C-maj7', 'D-7b5', 'Ebmaj7#5', 'F-7', 'G7', 'Abmaj7', 'B°7']);
+  assert.deepStrictEqual(t('melodic').map((x) => x.roman), ['I-maj7', 'II-7', 'bIIImaj7#5', 'IV7', 'V7', 'VI-7b5', 'VII-7b5']);
+  assert.deepStrictEqual(M.diatonicSevenths('A', 'natural').map((x) => x.sym), ['A-7', 'B-7b5', 'Cmaj7', 'D-7', 'E-7', 'Fmaj7', 'G7']);
+  // the jazz minor team of lesson 24 = natural minor + V7 and VII°7 from harmonic minor
+  const mk = M.minorKeyChords('C');
+  assert.strictEqual(mk.V.sym, 'G7');
+  assert.strictEqual(mk.VII.sym, 'B°7');
+  // major key unchanged
+  assert.deepStrictEqual(M.diatonicSevenths('C').map((x) => x.roman), ['Imaj7', 'II-7', 'III-7', 'IVmaj7', 'V7', 'VI-7', 'VII-7b5']);
+});
+
+check('minor II-V-I: II-7b5 -> V7b9 -> I-maj7 (book pp. 51, 54-55, 58)', () => {
+  assert.deepStrictEqual(M.minorIIVI('C'), ['D-7b5', 'G7b9', 'C-maj7']);
+  assert.deepStrictEqual(M.minorIIVI('A'), ['B-7b5', 'E7b9', 'A-maj7']);
+  assert.deepStrictEqual(M.minorIIVI('D'), ['E-7b5', 'A7b9', 'D-maj7']);
+  assert.deepStrictEqual(M.minorIIVI('C', 'six'), ['D-7b5', 'G7b9', 'C-6']);
+  // the b9 of V7 is the b6 of the minor key; it is a semitone above the root of V
+  assert.strictEqual(M.bare(M.chordNotes('G7b9')[4]), M.bare(M.minorScale('C4', 'harmonic')[5]));
+  assert.strictEqual(M.semis('G3', M.chordNotes('G7b9', 3)[4]) - 12, 1);
+});
+
+check('colour modes are rotations of melodic / harmonic minor (book pp. 53, 57, 68)', () => {
+  const rot = (s, k) => s.slice(k - 1, 7).concat(s.slice(0, k - 1));
+  const cmm = M.minorScale('C4', 'melodic').slice(0, 7).map(M.bare);
+  const chm = M.minorScale('C4', 'harmonic').slice(0, 7).map(M.bare);
+  assert.deepStrictEqual(M.scale('F4', 'lydianDominant').slice(0, 7).map(M.bare), rot(cmm, 4));
+  assert.deepStrictEqual(M.scale('B3', 'altered').slice(0, 7).map(M.bare), rot(cmm, 7));
+  assert.deepStrictEqual(M.scale('G3', 'phrygianDominant').slice(0, 7).map(M.bare), rot(chm, 5));
+  assert.strictEqual(bare(M.scale('Db4', 'lydianDominant')), 'Db Eb F G Ab Bb Cb Db'); // book p.69: Db Lyd b7
+  // every colour mode holds a dominant 7 chord on its root
+  for (const [r, t] of [['F4', 'lydianDominant'], ['G3', 'phrygianDominant'], ['Db4', 'lydianDominant']]) {
+    const s = M.scale(r, t);
+    assert.strictEqual(M.qualityOf([s[0], s[2], s[4], s[6]]), '7', t);
+  }
+  const alt = M.scale('B3', 'altered');
+  const d = M.chordNotes('B7alt', 3).map((n) => M.pcOf(n));
+  d.forEach((pc) => assert.ok(alt.some((n) => M.pcOf(n) === pc), 'B7alt notes come from B altered'));
+});
+
+check('secondary dominants + related II (book pp. 32, 45-47, 70)', () => {
+  const sd = M.secondaryDominants('C');
+  assert.deepStrictEqual(sd.map((x) => x.dom), ['A7', 'B7', 'C7', 'D7', 'E7']);
+  assert.deepStrictEqual(sd.map((x) => x.target), ['D-7', 'E-7', 'Fmaj7', 'G7', 'A-7']);
+  assert.deepStrictEqual(sd.map((x) => x.label), ['V7/II', 'V7/III', 'V7/IV', 'V7/V', 'V7/VI']);
+  // no V7/VII: F#7 root is not in C major
+  assert.ok(!M.majorScale('C4').map(M.bare).includes(M.parseChord(M.secondaryDominant('B-7b5')).root));
+  sd.forEach((x) => assert.ok(M.majorScale('C4').map(M.bare).includes(M.parseChord(x.dom).root), x.dom + ' root diatonic'));
+  assert.strictEqual(M.relatedII('D7', 'G7'), 'A-7');
+  assert.strictEqual(M.relatedII('C7', 'Fmaj7'), 'G-7');
+  assert.strictEqual(M.relatedII('E7', 'A-7'), 'B-7b5');
+  assert.strictEqual(M.relatedII('G7', 'Cmaj7'), 'D-7');
+  assert.strictEqual(M.relatedII('Db7'), 'Ab-7');      // book p.70
+  sd.forEach((x) => {
+    const ii = M.parseChord(M.relatedII(x.dom, x.target)).root;
+    assert.strictEqual(((M.pcOf(ii) - M.pcOf(M.parseChord(x.dom).root)) + 12) % 12, 7, 'related II a fifth above ' + x.dom);
+  });
+});
+
+check('tritone substitution SubV7 (book pp. 68-70)', () => {
+  assert.strictEqual(M.tritoneSub('G7'), 'Db7');
+  assert.strictEqual(M.tritoneSub('D7'), 'Ab7');
+  assert.strictEqual(M.tritoneSub('C7'), 'Gb7');
+  assert.strictEqual(M.tritoneSub('A7'), 'Eb7');
+  assert.strictEqual(M.subV7('Cmaj7'), 'Db7');   // p.69 examples
+  assert.strictEqual(M.subV7('Dmaj7'), 'Eb7');
+  assert.strictEqual(M.subV7('Fmaj7'), 'Gb7');
+  for (const g of ['G7', 'D7', 'C7', 'A7', 'E7', 'B7']) {
+    const s = M.tritoneSub(g);
+    assert.strictEqual(((M.pcOf(M.parseChord(s).root) - M.pcOf(M.parseChord(g).root)) + 12) % 12, 6, g);
+    assert.strictEqual(pcs(M.tritoneOf(g)), pcs(M.tritoneOf(s)), g + ' shares the tritone');
+  }
+  assert.deepStrictEqual(M.tritoneOf('G7'), ['B', 'F']);
+  assert.deepStrictEqual(M.tritoneOf('Db7'), ['F', 'Cb']);   // Cb = B
+  assert.strictEqual(M.pcOf('Cb'), M.pcOf('B'));
+  // SubV7 root resolves down a half step to the tonic
+  assert.strictEqual(M.semis('Db4', 'C4'), -1);
+});
+
+check('guide tones and smooth voice leading', () => {
+  assert.deepStrictEqual(M.guideTones('D-7').map(M.bare), ['F', 'C']);
+  assert.deepStrictEqual(M.guideTones('G7').map(M.bare), ['B', 'F']);
+  assert.deepStrictEqual(M.guideTones('Cmaj7').map(M.bare), ['E', 'B']);
+  assert.deepStrictEqual(M.guideTones('D-7b5').map(M.bare), ['F', 'C']);
+  const line = M.guideToneLine('D-7 G7 Cmaj7', 4);
+  assert.deepStrictEqual(line, [['F4', 'C5'], ['F4', 'B4'], ['E4', 'B4']]);   // F->F, C->B, B->B, F->E
+  assert.strictEqual(M.motion(line[0], line[1]), 1);
+  assert.strictEqual(M.motion(line[1], line[2]), 1);
+  const line2 = M.guideToneLine('A-7 D7 G7', 4);
+  line2.slice(1).forEach((v, i) => assert.ok(M.motion(line2[i], v) <= 2, 'guide tones move by step'));
+});
+
+check('avoid notes and tensions on the diatonic chords of C (book pp. 33-36, 67, 72)', () => {
+  const want = { Cmaj7: 'F', 'D-7': 'B', 'E-7': 'C F', Fmaj7: 'B', G7: 'C', 'A-7': 'F', 'B-7b5': 'C' };
+  for (const [c, a] of Object.entries(want)) assert.strictEqual(M.avoidNotes(c).join(' '), a, c);
+  const tens = (c) => M.tensions(c).map((x) => x.num).sort().join(' ');
+  assert.strictEqual(tens('Cmaj7'), '13 9');
+  assert.strictEqual(tens('D-7'), '11 9');
+  assert.strictEqual(tens('G7'), '13 9');
+  assert.strictEqual(tens('A-7'), '11 9');
+  assert.ok(M.halfStepAboveChordTone('F', 'Cmaj7'));
+  assert.ok(M.halfStepAboveChordTone('C', 'G7'));
+  assert.ok(!M.halfStepAboveChordTone('D', 'Cmaj7'));
+  assert.ok(!M.halfStepAboveChordTone('A', 'Cmaj7'));
+});
+
+check('melody harmonisation and approach notes', () => {
+  const holders = (n) => M.chordsWithNote(n).map((d) => d.sym).join(' ');
+  assert.strictEqual(holders('E'), 'Cmaj7 E-7 Fmaj7 A-7');
+  assert.strictEqual(holders('B'), 'Cmaj7 E-7 G7 B-7b5');
+  assert.strictEqual(holders('A'), 'D-7 Fmaj7 A-7 B-7b5');
+  M.majorScale('C4').slice(0, 7).forEach((n) => assert.strictEqual(M.chordsWithNote(n).length, 4, n + ' is in 4 chords'));
+  assert.strictEqual(M.approachBelow('E4'), 'D#4');
+  assert.strictEqual(M.approachBelow('C5'), 'B4');
+  assert.strictEqual(M.approachBelow('G4'), 'F#4');
+  for (const n of ['E4', 'C5', 'G4', 'B4']) assert.strictEqual(M.semis(M.approachBelow(n), n), 1);
+});
+
+check('functions incl. SubV7; substitutes share a function', () => {
+  assert.deepStrictEqual(M.FUNCTION_CHORDS, { T: ['Imaj7', 'III-7', 'VI-7'], SD: ['II-7', 'IVmaj7'], D: ['V7', 'VII-7b5', 'subV7'] });
+  assert.strictEqual(M.functionOf('subV7'), 'D');
+  assert.strictEqual(M.romanChord('C', 'subV7'), 'Db7');
+  assert.deepStrictEqual(M.substitutes('Imaj7'), ['III-7', 'VI-7']);
+  assert.deepStrictEqual(M.substitutes('V7'), ['VII-7b5', 'subV7']);
+  const fn = { Cmaj7: 'T', 'E-7': 'T', 'A-7': 'T', 'D-7': 'SD', Fmaj7: 'SD', G7: 'D', 'B-7b5': 'D', Db7: 'D', E7: null };
+  for (const [c, f] of Object.entries(fn)) assert.strictEqual(M.chordFunction(c), f, c);
+});
+
 /* ---------- lesson structure ---------- */
-check('5 worlds, 18 lessons in curriculum order', () => {
-  assert.strictEqual(WORLDS.length, 5);
-  assert.strictEqual(LESSONS.length, 18);
+check('8 worlds, 30 lessons in curriculum order', () => {
+  assert.strictEqual(WORLDS.length, 8);
+  assert.strictEqual(LESSONS.length, 30);
   const perWorld = WORLDS.map((w) => LESSONS.filter((l) => l.world === w.id).length);
-  assert.deepStrictEqual(perWorld, [5, 3, 5, 3, 2]);
+  assert.deepStrictEqual(perWorld, [5, 3, 5, 3, 2, 3, 5, 4]);
   LESSONS.forEach((l, i) => {
     assert.strictEqual(l.n, i + 1);
     assert.strictEqual(l.id, 'L' + String(i + 1).padStart(2, '0'));
     if (i) assert.ok(l.world >= LESSONS[i - 1].world, 'worlds in order');
   });
   const ids = new Set(LESSONS.map((l) => l.id));
-  assert.strictEqual(ids.size, 18);
+  assert.strictEqual(ids.size, 30);
+  const colors = new Set(WORLDS.map((w) => w.color));
+  assert.strictEqual(colors.size, 8, 'each world has its own colour');
+  const css = fs.readFileSync(path.join(__dirname, '..', 'css', 'kids.css'), 'utf8');
+  const ui = fs.readFileSync(path.join(__dirname, '..', 'js', 'kids-ui.js'), 'utf8');
+  WORLDS.forEach((w) => {
+    assert.ok(css.includes('.w-' + w.color + ' '), 'css colour ' + w.color);
+    assert.ok(new RegExp('\\b' + w.icon + ": '<svg").test(ui), 'icon ' + w.icon);
+  });
 });
 
 check('every lesson has the 4 steps; quiz has 3-5 questions', () => {
@@ -191,11 +373,17 @@ check('every chord symbol in lessons is a book symbol and spells as thirds', () 
   }
   for (const s of syms) {
     const notes = M.chordNotes(s, 3);
-    const letters = notes.map((n) => M.note(n).l);
-    letters.slice(1).forEach((x, i) => assert.strictEqual((x - letters[i] + 7) % 7, 2, s + ' stacked in thirds'));
-    assert.strictEqual(M.qualityOf(notes), M.parseChord(s).q, s + ' quality');
+    const c = M.parseChord(s);
+    const rootL = M.note(c.root).l;
+    // each chord tone is spelled on the letter of its degree (3rds: +2 letters, 6 = +5, 13 = +5)
+    notes.forEach((n, i) => assert.strictEqual(M.note(n).l, (rootL + M.QUALITIES[c.q][i][0] - 1) % 7, s + ' spelled by degree'));
+    if (M.QUALITIES[c.q].every((d, i) => d[0] === 2 * i + 1)) {
+      const letters = notes.map((n) => M.note(n).l);
+      letters.slice(1).forEach((x, i) => assert.strictEqual((x - letters[i] + 7) % 7, 2, s + ' stacked in thirds'));
+    }
+    assert.strictEqual(M.qualityOf(notes), c.q, s + ' quality');
   }
-  assert.ok(syms.size >= 25, 'chords checked: ' + syms.size);
+  assert.ok(syms.size >= 40, 'chords checked: ' + syms.size);
 });
 
 check('try-it targets fit their keyboard and match the named chord', () => {
@@ -209,7 +397,36 @@ check('try-it targets fit their keyboard and match the named chord', () => {
     if (t.chord) assert.strictEqual(pcs(t.target), pcs(M.chordNotes(t.chord, 4)), `${l.id} target is ${t.chord}`);
     if (t.scale) assert.strictEqual(t.target, M.majorScale(t.target.split(' ')[0]).join(' '), l.id + ' scale');
     if (t.prog) assert.ok(t.prog.split(' ').includes(t.chord), l.id + ' prog ends on built chord');
+    if (t.minor) assert.strictEqual(t.target, M.minorScale(t.target.split(' ')[0], t.minor).join(' '), l.id + ' minor scale');
+    if (t.colour) assert.strictEqual(t.target, M.scale(t.target.split(' ')[0], t.colour[1]).join(' '), l.id + ' colour scale');
+    if (t.colour) assert.strictEqual(M.bare(t.target.split(' ')[0]), t.colour[0]);
+    if (t.holds) assert.ok(M.chordNotes(t.chord).map(M.bare).includes(t.holds), l.id + ' chord holds the melody note');
+    if (t.guide) assert.strictEqual(pcs(t.target), pcs(M.guideTones(t.guide)), l.id + ' guide tones of ' + t.guide);
+    if (t.replaces) assert.strictEqual(M.chordFunction(t.chord), M.chordFunction(t.replaces), l.id + ' same function');
+    if (t.approach) { const [a, b] = t.target.split(' '); assert.strictEqual(M.approachBelow(b), a); }
   }
+});
+
+check('try-it tasks in worlds 6-8 are correct', () => {
+  const one = (id, i) => { const t = byId(id).try[i]; return M.semis(t.mark, t.target); };
+  assert.strictEqual(one('L19', 0), 1);   // F half step above E = avoid on Cmaj7
+  assert.ok(M.avoidNotes('Cmaj7').includes(M.bare(byId('L19').try[0].target)));
+  assert.strictEqual(one('L19', 1), 2);   // 9 of C
+  assert.ok(M.tensions('Cmaj7').some((x) => x.note === M.bare(byId('L19').try[1].target) && x.num === '9'));
+  assert.strictEqual(one('L19', 2), 1);   // C half step above B = avoid on G7
+  assert.ok(M.avoidNotes('G7').includes(M.bare(byId('L19').try[2].target)));
+  assert.strictEqual(byId('L20').try[0].target, M.chordNotes('Cmaj7', 4).join(' '));   // arpeggio
+  assert.strictEqual(one('L20', 2), 2);   // 9 of G
+  assert.strictEqual(one('L20', 3), 9);   // 13 = 6th of C
+  assert.ok(M.tensions('Cmaj7').some((x) => x.note === 'A' && x.num === '13'));
+  assert.strictEqual(one('L23', 0), 3);   // b3
+  assert.strictEqual(one('L23', 1), 8);   // b6
+  assert.strictEqual(one('L23', 2), 10);  // b7
+  assert.strictEqual(one('L23', 3), 3);   // b3 of A
+  assert.strictEqual(one('L28', 1), -6);  // tritone below G = Db
+  assert.strictEqual(M.parseChord(M.tritoneSub('G7')).root, M.bare(byId('L28').try[1].target));
+  const gl = M.guideToneLine('D-7 G7 Cmaj7', 4);
+  assert.deepStrictEqual(byId('L29').try.map((t) => t.target), gl.map((v) => v.join(' ')));
 });
 
 check('try-it interval/step tasks are correct', () => {
@@ -275,9 +492,69 @@ check('quiz checks (intervals, chords, functions, keys)', () => {
     if (c.bluesBars) assert.strictEqual(M.blues('C').length, +ans);
     if (c.bluesBar) assert.strictEqual(M.blues(c.bluesBar[0])[c.bluesBar[1]], c.bluesBar[2]);
     if (c.ninth) assert.strictEqual(M.bare(M.chordNotes(c.ninth[0] + 'maj9')[4]), c.ninth[1]);
+    /* worlds 6-8 */
+    const optSyms = q.opts.map(strip);
+    if (c.avoid) assert.ok(M.avoidNotes(c.avoid[0]).includes(c.avoid[1]) && M.halfStepAboveChordTone(c.avoid[1], c.avoid[0]), l.id + ' avoid');
+    if (c.avoid && q.play) assert.ok(M.notes(q.play.seq.join(' ')).some((x) => M.bare(x.name) === c.avoid[1]), l.id + ' plays the avoid note');
+    if (c.tension) {
+      const tt = M.tensions(c.tension[0]).find((x) => x.note === c.tension[1]);
+      assert.ok(tt, l.id + ' tension ' + c.tension[1]);
+      if (c.tension[2]) { assert.strictEqual(tt.num, c.tension[2]); }
+      if (!q.play && q.opts.length === 3) assert.strictEqual(ans, c.tension[1]);
+      if (q.play) assert.ok(M.notes(q.play.seq.join(' ')).some((x) => M.bare(x.name) === c.tension[1]), l.id + ' plays the tension');
+    }
+    if (c.avoidOpts) optSyms.forEach((o, i) => assert.strictEqual(M.avoidNotes(c.avoidOpts).includes(o), i === q.a, l.id + ' ' + o));
+    if (c.halfAbove) assert.ok(M.halfStepAboveChordTone(c.halfAbove[0], c.halfAbove[1]));
+    if (c.approach) { assert.strictEqual(M.approachBelow(c.approach[0]), c.approach[1]); assert.strictEqual(ans, M.bare(c.approach[1])); }
+    if (c.holds) optSyms.forEach((o, i) => assert.strictEqual(M.chordNotes(o).map(M.bare).includes(c.holds), i === q.a, l.id + ' ' + o));
+    if (c.holdsNot) optSyms.forEach((o, i) => assert.strictEqual(M.chordNotes(o).map(M.bare).includes(c.holdsNot), i !== q.a, l.id + ' ' + o));
+    if (c.minorPlay) assert.strictEqual(q.play.n, M.minorScale('C4', c.minorPlay).join(' '), l.id);
+    if (c.raised) {
+      const nat = M.degreeNames('C', 'natural'), other = M.degreeNames('C', c.raised[0]);
+      const changed = nat.map((d, i) => (d !== other[i] ? String(i + 1) : null)).filter(Boolean).join(' ');
+      assert.strictEqual(changed, c.raised[1], l.id + ' raised degrees');
+    }
+    if (c.degree) { assert.strictEqual(M.bare(M.minorScale(c.degree[0] + 4, c.degree[1])[c.degree[2] - 1]), c.degree[3]); assert.strictEqual(ans, c.degree[3]); }
+    if (c.chordQ) { assert.strictEqual(q.play.chord, c.chordQ[0]); assert.strictEqual(M.parseChord(c.chordQ[0]).q, c.chordQ[1]); }
+    if (c.flats) assert.strictEqual(M.degreeNames('C', c.flats[0]).filter((d) => d[0] === 'b').length, +ans);
+    if (c.minorDia) {
+      const d = M.diatonicSevenths(c.minorDia[0], c.minorDia[1])[c.minorDia[2] - 1];
+      assert.strictEqual(d.sym, c.minorDia[3]);
+      assert.ok(ans === d.sym || ans === d.roman, l.id + ' ' + ans);
+    }
+    if (c.chordHas) assert.ok(M.chordNotes(c.chordHas[0]).map(M.bare).includes(c.chordHas[1]));
+    if (c.progAns) assert.strictEqual(ans.split(' → ').join(' '), q.play.prog);
+    if (c.minorIIVIplay) assert.strictEqual(q.play.prog, M.minorIIVI(c.minorIIVIplay).join(' '));
+    if (c.minorIIVI) assert.strictEqual(ans, M.minorIIVI(c.minorIIVI[0])[c.minorIIVI[1]]);
+    if (c.minorIIVIfull) assert.strictEqual(ans.split(' → ').join(' '), M.minorIIVI(c.minorIIVIfull).join(' '));
+    if (c.modeOf) {
+      const [mode, parent, k] = c.modeOf;
+      const p = M.minorScale('C4', parent).slice(0, 7);
+      const root = p[k - 1];
+      assert.strictEqual(pcs(M.scale(root, mode).slice(0, 7)), pcs(p), l.id + ' ' + mode + ' is mode ' + k + ' of ' + parent);
+    }
+    if (c.colourPlay) assert.strictEqual(q.play.n, M.scale(q.play.n.split(' ')[0], c.colourPlay).join(' '));
+    if (c.relII) { assert.strictEqual(M.relatedII(c.relII[0], c.relII[1]), c.relII[2]); assert.strictEqual(ans, c.relII[2]); }
+    if (c.tritoneSub) { assert.strictEqual(M.tritoneSub(c.tritoneSub[0]), c.tritoneSub[1]); assert.strictEqual(ans, c.tritoneSub[1]); }
+    if (c.sharedTritone) assert.strictEqual(pcs(ans.split(' ')), pcs(M.tritoneOf(c.sharedTritone[1])));
+    if (c.sharedTritone) assert.strictEqual(pcs(ans.split(' ')), pcs(M.tritoneOf(c.sharedTritone[0])));
+    if (c.progMid) { assert.strictEqual(q.play.prog.split(' ')[1], c.progMid); assert.ok(ans.startsWith(c.progMid + ':')); }
+    if (c.guide) { assert.strictEqual(ans, M.guideTones(c.guide).map(M.bare).join(' ')); }
+    if (c.glMove) {
+      const gl = M.guideToneLine(c.glMove[0], 4);
+      const from = gl[0].findIndex((n) => M.bare(n) === c.glMove[1]);
+      assert.strictEqual(M.bare(gl[1][from]), c.glMove[2]);
+    }
+    if (c.smooth != null) {
+      const g = q.play.seq.map((x) => x.split(' '));
+      const maxMove = Math.max(...g.slice(1).map((v, i) => Math.max(...v.map((n, j) => Math.abs(M.midi(n) - M.midi(g[i][j]))))));
+      assert.strictEqual(maxMove <= 2, c.smooth, l.id + ' max move ' + maxMove);
+    }
+    if (c.sameFn) optSyms.forEach((o, i) => assert.strictEqual(M.chordFunction(o) === M.chordFunction(c.sameFn), i === q.a, l.id + ' ' + o));
+    if (c.story) assert.strictEqual(q.play.prog.split(' ').map((s) => M.chordFunction(s)).join(' '), c.story);
     n++;
   }
-  assert.ok(n >= 35, 'checked quiz questions: ' + n);
+  assert.ok(n >= 85, 'checked quiz questions: ' + n);
 });
 
 check('lesson 14 / 15 / 16 / 17 / 18 content matches theory', () => {
@@ -291,6 +568,84 @@ check('lesson 14 / 15 / 16 / 17 / 18 content matches theory', () => {
   });
   assert.strictEqual(byId('L18').hear[0].play.prog, M.blues('C').join(' '));
   assert.ok(byId('L12').learn[3].fig.chips.join(' ') === 'Cmaj7 C7 C-7 C-7b5 C°7');
+});
+
+check('lessons 19-30 content matches theory', () => {
+  // L22: hear = the three minor scales + jazz melodic minor going down unchanged
+  const h22 = byId('L22').hear.map((h) => h.play.n);
+  assert.deepStrictEqual(h22.slice(0, 3), ['natural', 'harmonic', 'melodic'].map((t) => M.minorScale('C4', t).join(' ')));
+  assert.strictEqual(h22[3], M.minorScale('C4', 'melodic').slice().reverse().join(' '));
+  // L24: chips = natural-minor chords, then the jazz minor team (V7 and VII°7 from harmonic minor)
+  const f24 = byId('L24').learn[0].fig;
+  assert.deepStrictEqual(f24.chips, M.diatonicSevenths('C', 'natural').map((x) => x.sym));
+  assert.deepStrictEqual(f24.subs, M.diatonicSevenths('C', 'natural').map((x) => x.roman));
+  const team = byId('L24').learn[5].fig;
+  const mk = M.minorKeyChords('C');
+  const want = mk.natural.map((x, i) => (i === 4 ? mk.V : x)).concat([mk.VII]);
+  assert.deepStrictEqual(team.chips, want.map((x) => x.sym));
+  assert.deepStrictEqual(team.subs, want.map((x) => x.roman));
+  assert.strictEqual(byId('L24').hear[0].play.prog, M.diatonicSevenths('C', 'natural').map((x) => x.sym).join(' '));
+  // L25: minor II-V-I in C and A, and the C-6 ending
+  const h25 = byId('L25').hear.map((h) => h.play.prog);
+  assert.strictEqual(h25[0], M.minorIIVI('C').join(' '));
+  assert.strictEqual(h25[1], M.iiVI('C').join(' '));
+  assert.strictEqual(h25[2], M.minorIIVI('A').join(' '));
+  assert.strictEqual(h25[3], M.minorIIVI('C', 'six').join(' '));
+  assert.deepStrictEqual(byId('L25').learn[1].fig.chips, M.minorIIVI('C'));
+  // L26: hear = the three colour scales
+  const h26 = byId('L26').hear.map((h) => h.play.n);
+  assert.strictEqual(h26[0], M.scale('F4', 'lydianDominant').join(' '));
+  assert.strictEqual(h26[1], M.scale('B3', 'altered').join(' '));
+  assert.strictEqual(h26[2], M.scale('G3', 'phrygianDominant').join(' '));
+  // L27: the five secondary dominants with their labels; II-V examples use the related II
+  const f27 = byId('L27').learn[1].fig;
+  assert.deepStrictEqual(f27.chips, M.secondaryDominants('C').map((x) => x.dom));
+  assert.deepStrictEqual(f27.subs, M.secondaryDominants('C').map((x) => x.label));
+  byId('L27').hear.slice(0, 3).forEach((h) => {
+    const [ii, v, t] = h.play.prog.split(' ');
+    assert.strictEqual(M.secondaryDominant(t), v);
+    assert.strictEqual(M.relatedII(v, t), ii);
+  });
+  // L28: SubV7 progressions, related II Ab-7
+  assert.strictEqual(byId('L28').hear[1].play.prog, ['D-7', M.subV7('Cmaj7'), 'Cmaj7'].join(' '));
+  assert.strictEqual(byId('L28').hear[3].play.prog, [M.relatedII('Db7'), 'Db7', 'Cmaj7'].join(' '));
+  assert.strictEqual(pcs(byId('L28').hear[2].play.n), pcs(M.tritoneOf('Db7')));
+  // L29: the guide-tone line and the voiced version
+  const gl = M.guideToneLine('D-7 G7 Cmaj7', 4).map((v) => v.join(' '));
+  assert.deepStrictEqual(byId('L29').hear[0].play.seq, gl);
+  byId('L29').hear[1].play.seq.forEach((g, i) => assert.strictEqual(g.split(' ').slice(1).join(' '), gl[i]));
+  // L30: every substitute progression keeps the story T SD D T
+  byId('L30').hear.forEach((h) => assert.strictEqual(h.play.prog.split(' ').map((s) => M.chordFunction(s)).join(' '), 'T SD D T'));
+  byId('L30').learn.forEach((s) => {
+    if (!s.fig || !s.fig.subs) return;
+    const fns = s.fig.chips.map((c) => M.chordFunction(c));
+    assert.strictEqual(new Set(fns).size, 1, 'one function per substitution screen');
+    s.fig.subs.forEach((r, i) => assert.strictEqual(M.romanChord('C', r === 'SubV7' ? 'subV7' : r), s.fig.chips[i]));
+  });
+  // L21: the melody chords hold the melody notes
+  const h21 = byId('L21').hear[1].play.seq;
+  const chords21 = ['Cmaj7', 'D-7', 'G7', 'Cmaj7'];
+  const mel21 = byId('L21').hear[0].play.n.split(' ');
+  mel21.forEach((n, i) => assert.ok(M.chordNotes(chords21[i]).map(M.bare).includes(M.bare(n)), n + ' in ' + chords21[i]));
+  h21.forEach((g, i) => assert.ok(g.split(' ').map(M.bare).every((x) => M.chordNotes(chords21[i]).map(M.bare).includes(x)), 'voicing ' + g));
+});
+
+check('unlock order continues into the new worlds (L19 after L18 ... L30)', () => {
+  const s = CORE.migrateState({});
+  const TS = new Date(2026, 10, 22, 12).getTime();
+  for (let i = 0; i < 18; i++) K.finishLesson(s, LESSONS, LESSONS[i].id, 3, 4, 0, TS);
+  assert.strictEqual(K.unlocked(s, LESSONS, 18), true);
+  assert.strictEqual(LESSONS[18].id, 'L19');
+  assert.strictEqual(K.unlocked(s, LESSONS, 19), false);
+  const r = K.finishLesson(s, LESSONS, 'L19', 5, 5, 0, TS);
+  assert.strictEqual(r.unlockedNext, 'L20');
+  assert.deepStrictEqual(r.delta, { id: 'kids-L19', r: 3, t: 1 });
+  for (let i = 19; i < 29; i++) K.finishLesson(s, LESSONS, LESSONS[i].id, 4, 4, 0, TS);
+  assert.strictEqual(K.nextIndex(s, LESSONS), 29);
+  const last = K.finishLesson(s, LESSONS, 'L30', 4, 5, 0, TS);
+  assert.strictEqual(last.unlockedNext, null);
+  assert.strictEqual(K.nextIndex(s, LESSONS), null);
+  assert.ok(Object.keys(s.stats).filter(K.isKidsStat).length === 30);
 });
 
 /* ---------- progress logic ---------- */
@@ -366,7 +721,7 @@ check('totals and world summary', () => {
   K.finishLesson(s, LESSONS, 'L01', 4, 4, 0, TS);
   K.finishLesson(s, LESSONS, 'L02', 3, 4, 0, TS);
   const t = K.totals(s, LESSONS);
-  assert.deepStrictEqual([t.stars, t.done, t.maxStars, t.count], [5, 2, 54, 18]);
+  assert.deepStrictEqual([t.stars, t.done, t.maxStars, t.count], [5, 2, 90, 30]);
   const w = K.worldSummary(s, WORLDS, LESSONS);
   assert.strictEqual(w[0].done, 2);
   assert.strictEqual(w[1].done, 0);
@@ -417,7 +772,7 @@ check('service worker precaches the new files', () => {
     assert.ok(sw.includes('"' + f + '"'), f);
     assert.ok(fs.existsSync(path.join(__dirname, '..', f)), f + ' exists');
   }
-  assert.ok(!/VERSION = "ha-v4"/.test(sw), 'cache version bumped');
+  assert.ok(/VERSION = "ha-v6"/.test(sw), 'cache version bumped to ha-v6 for worlds 6-8');
 });
 
 console.log(`\n${passed} kids checks passed`);
