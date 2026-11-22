@@ -1,15 +1,15 @@
 {
   "name": "הַרְמוֹנָה",
   "short_name": "הרמונה",
-  "description": "הַרְמוֹנָה – תרגול הרמוניה: מרווחים, מודוסים ודרגות כרומטיות.",
+  "description": "הַרְמוֹנָה – לומדים הרמוניה של ג׳אז צעד אחר צעד, ותרגול מרווחים, מודוסים ודרגות כרומטיות.",
   "lang": "he",
   "dir": "rtl",
   "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#0f1216",
-  "theme_color": "#0f1216",
+  "background_color": "#fff8ee",
+  "theme_color": "#fff8ee",
   "orientation": "any",
   "display_override": ["standalone"],
   "icons": [

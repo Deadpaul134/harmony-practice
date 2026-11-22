@@ -1,16 +1,21 @@
 /* Harmona service worker: versioned app-shell cache for offline; network-first HTML.
    Bump VERSION on every release that changes cached files. */
 "use strict";
-var VERSION = "ha-v4";
+var VERSION = "ha-v5";
 var APP = "ha-app-" + VERSION;
 var FILES = [
   "./",
   "index.html",
   "privacy.html",
   "manifest.webmanifest",
+  "css/kids.css",
   "js/game-core.js",
   "js/game-audio.js",
   "js/game-ui.js",
+  "js/kids-music.js",
+  "js/kids-lessons.js",
+  "js/kids-core.js",
+  "js/kids-ui.js",
   "assets/icons/logo.svg",
   "assets/icons/icon-192.png",
   "assets/icons/icon-512.png",
