@@ -7,6 +7,9 @@
 .w-violet { --w: #6d28d9; --w-fill: #9b7bf6; --w-soft: #efe9ff; --w-ink: #4c1d95; }
 .w-blue   { --w: #1d4ed8; --w-fill: #5b9bf8; --w-soft: #e1ecff; --w-ink: #1e3a8a; }
 .w-berry  { --w: #be185d; --w-fill: #f472b6; --w-soft: #fde7f2; --w-ink: #831843; }
+.w-green  { --w: #15803d; --w-fill: #3fcf74; --w-soft: #dcfce7; --w-ink: #14532d; }
+.w-indigo { --w: #4338ca; --w-fill: #818cf8; --w-soft: #e6e8ff; --w-ink: #312e81; }
+.w-amber  { --w: #a16207; --w-fill: #f5b82e; --w-soft: #fef5d6; --w-ink: #713f12; }
 
 .kids, .k-lesson, .k-pcard, .k-toast {
   --k-ink: #23243a;

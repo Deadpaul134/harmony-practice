@@ -62,6 +62,9 @@
     path: '<svg viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 5"><path d="M5 26c6-1 9-5 8-10s3-9 14-10"/></svg>',
     homeward: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 14h15V8l10 8-10 8v-6H4z"/></svg>',
     starw: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3l3.8 8 8.7 1.1-6.4 6 1.6 8.7L16 22.5l-7.7 4.3 1.6-8.7-6.4-6 8.7-1.1z"/></svg>',
+    melody: '<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="24" width="26" height="4" rx="2"/><ellipse cx="8" cy="18" rx="3.6" ry="2.8" transform="rotate(-18 8 18)"/><rect x="10.4" y="5" width="2.4" height="13" rx="1.2"/><ellipse cx="21" cy="14" rx="3.6" ry="2.8" transform="rotate(-18 21 14)"/><rect x="23.4" y="3" width="2.4" height="11" rx="1.2"/><path d="M11.6 5l14.2-2v3.4L11.6 8.4z"/></svg>',
+    moon: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M19.5 3.5A12.5 12.5 0 1 0 28.5 21 10 10 0 0 1 19.5 3.5z"/><path d="M24 6l.9 2.1 2.1.9-2.1.9L24 12l-.9-2.1-2.1-.9 2.1-.9z"/></svg>',
+    wand: '<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="20.5" width="20" height="4.4" rx="2.2" transform="rotate(-45 13 22.7)"/><path d="M22 3l1.6 3.8L27.5 8.4l-3.9 1.6L22 13.8l-1.6-3.8L16.5 8.4l3.9-1.6z"/><circle cx="27" cy="17" r="1.8"/><circle cx="14" cy="5" r="1.5"/></svg>',
   };
   const ROLE = {
     T: { he: 'טוניקה', short: 'בית', icon: 'house', degs: 'I III VI' },
@@ -180,7 +183,7 @@
     const dia = f.roman ? M.diatonicSevenths('C') : null;
     const fnHe = { T: 'בית', SD: 'טיול', D: 'דרך הביתה' };
     return `<div class="k-chips" dir="ltr">${f.chips.map((c, i) => {
-      const sub = dia ? tok(dia[i].roman) : f.fn ? `<span>${fnHe[f.fn[i]]}</span>` : `<span>${esc(M.FAMILY_HE[M.parseChord(c).q] || '')}</span>`;
+      const sub = f.subs ? tok(f.subs[i]) : dia ? tok(dia[i].roman) : f.fn ? `<span>${fnHe[f.fn[i]]}</span>` : `<span>${esc(M.FAMILY_HE[M.parseChord(c).q] || '')}</span>`;
       return (i && f.fn ? '<span class="k-arrow" aria-hidden="true">→</span>' : '') + `<span class="k-chip">${tok(c)}<small>${sub}</small></span>`;
     }).join('')}</div>`;
   }
