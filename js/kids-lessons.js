@@ -1,4 +1,4 @@
-/* Harmona kids: the "learning jazz" path. 5 worlds, 18 lessons, in the order of
+/* Harmona kids: the "learning jazz" path. 8 worlds, 30 lessons, in the order of
    the course book (Kimelman & Benkut). All explanations are our own words for a
    10-year-old. Markup in strings: {C#} = music token (shown LTR), *word* = bold.
    Lesson = learn (short screens) -> hear (sound buttons) -> try (keyboard) -> quiz. */
@@ -12,6 +12,9 @@
     { id: 3, title: 'אקורדים', sub: 'בניינים של צלילים', color: 'violet', icon: 'tower' },
     { id: 4, title: 'אקורדים בתוך הסולם', sub: 'בית, טיול ודרך הביתה', color: 'blue', icon: 'house' },
     { id: 5, title: 'בונוס לג׳אזיסטים', sub: 'טעימה מהמשך הספר', color: 'berry', icon: 'star' },
+    { id: 6, title: 'איך מנגנים מעל אקורד', sub: 'מלודיה שמתאימה לאקורד', color: 'green', icon: 'melody' },
+    { id: 7, title: 'ארץ המינור', sub: 'סולמות ואקורדים עצובים ויפים', color: 'indigo', icon: 'moon' },
+    { id: 8, title: 'קסמים של ג׳אזיסטים', sub: 'דומיננטות, החלקות והחלפות', color: 'amber', icon: 'wand' },
   ];
 
   const L = [];
@@ -497,6 +500,359 @@
       { q: 'איזה אקורד פותח בלוז ב־{C}?', opts: ['{C7}', '{F7}', '{G7}'], a: 0, check: { bluesBar: ['C', 0, 'C7'] } },
       { q: 'אילו אקורדים יש בבלוז?', opts: ['{I7 IV7 V7}', '{II-7 V7 Imaj7}'], a: 0 },
       { q: 'אחרי כמה תיבות האקורד מתחלף?', play: { prog: 'C7 C7 C7 C7 F7', beat: 0.9 }, opts: ['4', '2', '8'], a: 0, check: { bluesBar: ['C', 4, 'F7'] } },
+    ],
+  });
+
+  /* ---------------- World 6: playing over a chord ---------------- */
+  L.push({
+    id: 'L19', world: 6, title: 'צלילי מנע',
+    learn: [
+      { t: 'מנגנים מלודיה מעל אקורד. רוב הצלילים של הסולם נשמעים טוב, אבל יש צליל שמתנגש.', fig: { tower: 'Cmaj7' } },
+      { t: 'מעל {Cmaj7} נסו את {F}. הוא יושב חצי טון מעל {E}, כמו חבר שדורך לך על הרגל.', fig: { keys: 'E4 F4', labels: 'letters' } },
+      { t: 'צליל שיושב חצי טון מעל צליל של האקורד נקרא *צליל מנע*. לא נחים עליו, רק עוברים דרכו.' },
+      { t: 'לעומתו {D} מעל {Cmaj7} נשמע מתוק. הוא תבלין טוב: טנשן 9.', fig: { keys: 'C4 D4 E4 G4 B4', labels: 'letters' } },
+      { t: 'גם ל־{G7} יש צליל מנע: {C}. הוא חצי טון מעל {B}.', fig: { keys: 'B4 C5', labels: 'letters' } },
+    ],
+    hear: [
+      { label: 'התנגשות: {F} מעל {Cmaj7}', play: { seq: ['C3 G3 B3 E4', 'C3 G3 B3 E4 F5'] } },
+      { label: 'תבלין מתוק: {D} מעל {Cmaj7}', play: { seq: ['C3 G3 B3 E4', 'C3 G3 B3 E4 D5'] } },
+      { label: 'עוברים דרך {F} ונוחתים על {E}', play: { seq: ['C3 G3 B3 F5', 'C3 G3 B3 E5'] } },
+      { label: 'התנגשות: {C} מעל {G7}', play: { seq: ['G3 B3 D4 F4', 'G3 B3 D4 F4 C5'] } },
+    ],
+    try: [
+      { p: 'לחצו על צליל המנע של {Cmaj7}: חצי טון מעל {E}.', target: 'F4', mode: 'one', mark: 'E4' },
+      { p: 'עכשיו התבלין הטוב, 9: צעד גדול מעל {C}.', target: 'D4', mode: 'one', mark: 'C4' },
+      { p: 'לחצו על צליל המנע של {G7}: חצי טון מעל {B}.', target: 'C5', mode: 'one', mark: 'B4' },
+    ],
+    quiz: [
+      { q: 'מתנגש או מתוק?', play: { seq: ['C3 G3 B3 E4 F5'] }, opts: ['מתנגש: צליל מנע', 'מתוק: תבלין טוב'], a: 0, check: { avoid: ['Cmaj7', 'F'] } },
+      { q: 'מתנגש או מתוק?', play: { seq: ['C3 G3 B3 E4 D5'] }, opts: ['מתנגש: צליל מנע', 'מתוק: תבלין טוב'], a: 1, check: { tension: ['Cmaj7', 'D'] } },
+      { q: 'מהו צליל המנע מעל {Cmaj7}?', opts: ['{F}', '{D}', '{A}'], a: 0, check: { avoidOpts: 'Cmaj7' } },
+      { q: 'למה {C} מתנגש מעל {G7}?', opts: ['הוא חצי טון מעל {B}', 'הוא רחוק מכל הצלילים'], a: 0, check: { halfAbove: ['C', 'G7'] } },
+      { q: 'מה עושים עם צליל מנע?', opts: ['עוברים דרכו מהר', 'מחזיקים אותו הרבה זמן'], a: 0 },
+    ],
+  });
+
+  L.push({
+    id: 'L20', world: 6, title: 'תבניות מלודיות',
+    learn: [
+      { t: 'איך ממציאים מלודיה מעל אקורד? יש שלושה טריקים קטנים.' },
+      { t: 'טריק 1: מנגנים את צלילי האקורד אחד אחרי השני, כמו לטפס בבניין. זה נקרא *ארפג׳*.', fig: { keys: 'C4 E4 G4 B4', labels: 'letters' } },
+      { t: 'טריק 2: מגיעים לצליל של האקורד מחצי טון מתחתיו, כמו קפיצה קטנה למדרגה. זה נקרא *צליל גישה*.', fig: { keys: 'D#4 E4', labels: 'letters' } },
+      { t: 'טריק 3: נוחתים על תבלין, 9 או 13. מעל {Cmaj7} אלה {D} ו־{A}.', fig: { keys: 'C4 D4 A4', labels: 'letters' } },
+      { t: 'גם 11 הוא תבלין, אבל רק כשהוא לא צליל מנע. מעל {D-7} ה־11 הוא {G}, והוא נשמע מצוין.' },
+    ],
+    hear: [
+      { label: 'ארפג׳ של {Cmaj7}', play: { chord: 'Cmaj7', how: 'both', oct: 4 } },
+      { label: 'צליל גישה: {D#} ← {E}', play: { seq: ['C3 G3 B3 G4', 'D#4', 'C3 G3 B3 E4'], beat: 0.7 } },
+      { label: 'נוחתים על 9 מעל {Cmaj7}', play: { seq: ['C3 E3 G3 B3', 'C3 E3 G3 B3 D5'] } },
+      { label: 'מלודיה עם שלושת הטריקים', play: { seq: ['D3 F4', 'A4', 'C5', 'G2 B4', 'A4', 'D#4', 'C3 B3 E4'], beat: 0.55 } },
+    ],
+    try: [
+      { p: 'נגנו ארפג׳ של {Cmaj7}: {C}, {E}, {G}, {B}, לפי הסדר.', target: 'C4 E4 G4 B4', mode: 'seq' },
+      { p: 'נגנו צליל גישה ונחיתה: {D#} ואז {E}.', target: 'D#4 E4', mode: 'seq', approach: true },
+      { p: 'מצאו את 9 של {G7}: צעד גדול מעל {G}.', target: 'A4', mode: 'one', mark: 'G4' },
+      { p: 'נחתו על 13 של {Cmaj7}: הצליל השישי מ־{C}.', target: 'A4', mode: 'one', mark: 'C4' },
+    ],
+    quiz: [
+      { q: 'מה שמעתם? צלילי האקורד אחד אחרי השני…', play: { chord: 'Cmaj7', how: 'up', oct: 4 }, opts: ['ארפג׳', 'צליל מנע', 'סולם'], a: 0 },
+      { q: 'מהו צליל הגישה הכרומטי ל־{E} מלמטה?', opts: ['{D#}', '{F#}', '{C}'], a: 0, check: { approach: ['E4', 'D#4'] } },
+      { q: 'מה ה־9 של {Cmaj7}?', opts: ['{D}', '{F}', '{B}'], a: 0, check: { tension: ['Cmaj7', 'D', '9'] } },
+      { q: 'שמעתם אקורד ועוד צליל למעלה. מה הוא?', play: { seq: ['C3 E3 G3 B3 D5'] }, opts: ['תבלין: 9', 'צליל מנע'], a: 0, check: { tension: ['Cmaj7', 'D'] } },
+      { q: 'מעל {D-7}, ה־11 ({G}) הוא…', opts: ['תבלין טוב', 'צליל מנע'], a: 0, check: { tension: ['D-7', 'G', '11'] } },
+    ],
+  });
+
+  L.push({
+    id: 'L21', world: 6, title: 'הירמון מלודיה',
+    learn: [
+      { t: 'יש לנו מלודיה, וצריך לבחור לה אקורדים. זה נקרא *הירמון*.' },
+      { t: 'הכלל הפשוט: בוחרים אקורד שצליל המלודיה נמצא בתוכו, כמו מכסה שמתאים לסיר.' },
+      { t: 'למשל {E} נמצא בארבעה אקורדים של {C}:', fig: { chips: ['Cmaj7', 'E-7', 'Fmaj7', 'A-7'] } },
+      { t: 'כל בחירה צובעת את אותה מלודיה בצבע אחר.' },
+      { t: 'טיפ: בסוף המשפט חוזרים הביתה, אל {Cmaj7}.' },
+    ],
+    hear: [
+      { label: 'מלודיה לבד: {E D B C}', play: { n: 'E4 D4 B3 C4' } },
+      { label: 'אותה מלודיה עם אקורדים', play: { seq: ['C3 G3 B3 E4', 'D3 F3 C4 D4', 'G2 F3 B3', 'C3 E3 G3 C4'], beat: 1 } },
+      { label: 'אותו {E}, שלושה אקורדים', play: { seq: ['C3 G3 B3 E4', 'A2 G3 C4 E4', 'F3 A3 C4 E4'], beat: 1.2 } },
+    ],
+    try: [
+      { p: 'הצליל במלודיה הוא {A}. בנו את {D-7}, שיש בו {A}.', target: 'D4 F4 A4 C5', mode: 'set', end: 'together', chord: 'D-7', holds: 'A' },
+      { p: 'הצליל במלודיה הוא {B}. בנו את {G7}: {G}, {B}, {D}, {F}.', target: 'G4 B4 D4 F4', mode: 'set', end: 'together', chord: 'G7', holds: 'B' },
+      { p: 'הצליל במלודיה הוא {C}. בנו את {A-7}, שיש בו {C}.', target: 'A4 C5 E4 G4', mode: 'set', end: 'together', chord: 'A-7', holds: 'C' },
+    ],
+    quiz: [
+      { q: 'איזה אקורד מכיל את הצליל {B}?', opts: ['{G7}', '{D-7}', '{Fmaj7}'], a: 0, check: { holds: 'B' } },
+      { q: 'איזה אקורד מכיל את הצליל {F}?', opts: ['{D-7}', '{Cmaj7}', '{A-7}'], a: 0, check: { holds: 'F' } },
+      { q: 'איזה אקורד לא מכיל את {E}?', opts: ['{G7}', '{Cmaj7}', '{A-7}'], a: 0, check: { holdsNot: 'E' } },
+      { q: 'המשפט נגמר בבית?', play: { seq: ['C3 G3 B3 E4', 'D3 F3 C4 D4', 'G2 F3 B3'], beat: 1 }, opts: ['לא, הוא רוצה להמשיך', 'כן, הוא בבית'], a: 0 },
+    ],
+  });
+
+  /* ---------------- World 7: minor land ---------------- */
+  L.push({
+    id: 'L22', world: 7, title: 'שלושה מינורים',
+    learn: [
+      { t: 'למינור יש שלושה אחים. כולם מתחילים אותו דבר: {C D Eb}.', fig: { keys: 'C4 D4 Eb4', labels: 'letters' } },
+      { t: 'הראשון הוא *מינור טבעי*: רגוע ועצוב.', fig: { keys: 'C4 D4 Eb4 F4 G4 Ab4 Bb4 C5', labels: 'letters' } },
+      { t: 'השני הוא *מינור הרמוני*: מרימים את הצליל השביעי, {Bb} נהיה {B}. נשמע מזרחי.', fig: { keys: 'C4 D4 Eb4 F4 G4 Ab4 B4 C5', labels: 'letters' } },
+      { t: 'השלישי הוא *מינור מלודי*: מרימים גם את השישי וגם את השביעי, {A} ו־{B}.', fig: { keys: 'C4 D4 Eb4 F4 G4 A4 B4 C5', labels: 'letters' } },
+      { t: 'בג׳אז מנגנים את המינור המלודי אותו דבר, גם בעלייה וגם בירידה.' },
+    ],
+    hear: [
+      { label: '{C} מינור טבעי', play: { n: 'C4 D4 Eb4 F4 G4 Ab4 Bb4 C5' } },
+      { label: '{C} מינור הרמוני: שימו לב לקפיצה בסוף', play: { n: 'C4 D4 Eb4 F4 G4 Ab4 B4 C5' } },
+      { label: '{C} מינור מלודי: עולים', play: { n: 'C4 D4 Eb4 F4 G4 A4 B4 C5' } },
+      { label: 'מינור מלודי בג׳אז: יורדים באותם צלילים', play: { n: 'C5 B4 A4 G4 F4 Eb4 D4 C4' } },
+    ],
+    try: [
+      { p: 'נגנו {C} מינור טבעי, מ־{C} עד {C}.', target: 'C4 D4 Eb4 F4 G4 Ab4 Bb4 C5', mode: 'seq', minor: 'natural' },
+      { p: 'נגנו {C} מינור הרמוני. שימו לב ל־{B}!', target: 'C4 D4 Eb4 F4 G4 Ab4 B4 C5', mode: 'seq', minor: 'harmonic' },
+      { p: 'נגנו {C} מינור מלודי: {A} ו־{B} מורמים.', target: 'C4 D4 Eb4 F4 G4 A4 B4 C5', mode: 'seq', minor: 'melodic' },
+    ],
+    quiz: [
+      { q: 'איזה מינור שמעתם?', play: { n: 'C4 D4 Eb4 F4 G4 Ab4 B4 C5' }, opts: ['הרמוני', 'טבעי', 'מלודי'], a: 0, check: { minorPlay: 'harmonic' } },
+      { q: 'איזה מינור שמעתם?', play: { n: 'C4 D4 Eb4 F4 G4 Ab4 Bb4 C5' }, opts: ['הרמוני', 'טבעי', 'מלודי'], a: 1, check: { minorPlay: 'natural' } },
+      { q: 'מה מרימים במינור ההרמוני?', opts: ['את השביעי', 'את השלישי', 'את השני'], a: 0, check: { raised: ['harmonic', '7'] } },
+      { q: 'מה מרימים במינור המלודי?', opts: ['את השישי והשביעי', 'רק את השני', 'שום דבר'], a: 0, check: { raised: ['melodic', '6 7'] } },
+      { q: 'בג׳אז, המינור המלודי בירידה…', opts: ['נשאר אותו דבר', 'הופך לטבעי'], a: 0 },
+    ],
+  });
+
+  L.push({
+    id: 'L23', world: 7, title: 'הדרגות במינור',
+    learn: [
+      { t: 'לכל צליל בסולם יש מספר לפי המקום שלו. המספר הזה נקרא *דרגה*.' },
+      { t: 'במז׳ור הדרגות הן {1 2 3 4 5 6 7}. במינור הטבעי הן {1 2 b3 4 5 b6 b7}.' },
+      { t: 'שלושה צלילים ירדו בחצי טון: השלישי, השישי והשביעי.', fig: { keys: 'Eb4 Ab4 Bb4', labels: 'letters' } },
+      { t: 'הכי חשוב הוא {b3}. הוא מה שהופך את הסולם לעצוב.', fig: { keys: 'C4 Eb4 G4', labels: 'letters' } },
+      { t: 'במינור ההרמוני השביעי חוזר למקום: {1 2 b3 4 5 b6 7}.' },
+    ],
+    hear: [
+      { label: 'מז׳ור: {C E G}', play: { chord: 'C', how: 'both', oct: 4 } },
+      { label: 'מינור: {C Eb G}', play: { chord: 'C-', how: 'both', oct: 4 } },
+      { label: 'רק הדרגות שירדו: {b3 b6 b7}', play: { n: 'Eb4 Ab4 Bb4' } },
+      { label: '{C} מז׳ור ואז {C} מינור', play: { seq: ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5', 'C4', 'D4', 'Eb4', 'F4', 'G4', 'Ab4', 'Bb4', 'C5'], beat: 0.36 } },
+    ],
+    try: [
+      { p: 'לחצו על {b3} של {C}: חצי טון מתחת ל־{E}.', target: 'Eb4', mode: 'one', mark: 'C4' },
+      { p: 'לחצו על {b6} של {C}.', target: 'Ab4', mode: 'one', mark: 'C4' },
+      { p: 'לחצו על {b7} של {C}.', target: 'Bb4', mode: 'one', mark: 'C4' },
+      { p: 'עכשיו {A} מינור: לחצו על {b3} שלו.', target: 'C5', mode: 'one', mark: 'A4' },
+    ],
+    quiz: [
+      { q: 'איזו דרגה עושה את הסולם עצוב?', opts: ['{b3}', '{5}', '{1}'], a: 0 },
+      { q: 'מה הדרגה {b6} ב־{C} מינור?', opts: ['{Ab}', '{A}', '{Bb}'], a: 0, check: { degree: ['C', 'natural', 6, 'Ab'] } },
+      { q: 'מה הדרגה {b7} ב־{C} מינור?', opts: ['{Bb}', '{B}', '{A}'], a: 0, check: { degree: ['C', 'natural', 7, 'Bb'] } },
+      { q: 'מז׳ור או מינור? הקשיבו לצליל האמצעי.', play: { chord: 'C-', oct: 4 }, opts: ['מינור: {b3}', 'מז׳ור: {3}'], a: 0, check: { chordQ: ['C-', '-'] } },
+      { q: 'כמה דרגות ירדו במינור הטבעי?', opts: ['3', '1', '5'], a: 0, check: { flats: ['natural', 3] } },
+    ],
+  });
+
+  L.push({
+    id: 'L24', world: 7, title: 'ספטאקורדים בסולם המינורי',
+    learn: [
+      { t: 'כמו במז׳ור, בונים בניין של ארבע קומות על כל צליל של {C} מינור טבעי. יוצאים שבעה אקורדים:', fig: { chips: ['C-7', 'D-7b5', 'Ebmaj7', 'F-7', 'G-7', 'Abmaj7', 'Bb7'], subs: ['I-7', 'II-7b5', 'bIIImaj7', 'IV-7', 'V-7', 'bVImaj7', 'bVII7'] } },
+      { t: 'אבל {G-7} לא מתגעגע הביתה מספיק. חסר בו {B}, הצליל שנמשך אל {C}.' },
+      { t: 'אז שואלים את {B} מהמינור ההרמוני. {G-7} הופך ל־{G7}, דומיננטה אמיתית!', fig: { chips: ['G-7', 'G7'] } },
+      { t: 'עם {B} יוצא גם {B°7} על הדרגה השביעית. גם הוא נמשך הביתה.', fig: { tower: 'B°7' } },
+      { t: 'מהמינור ההרמוני, הבית יכול להיות גם {C-maj7}: מינורי, עם {B} למעלה.', fig: { tower: 'C-maj7' } },
+      { t: 'זה הצוות של המינור בג׳אז:', fig: { chips: ['C-7', 'D-7b5', 'Ebmaj7', 'F-7', 'G7', 'Abmaj7', 'Bb7', 'B°7'], subs: ['I-7', 'II-7b5', 'bIIImaj7', 'IV-7', 'V7', 'bVImaj7', 'bVII7', 'VII°7'] } },
+    ],
+    hear: [
+      { label: 'שבעת האקורדים של {C} מינור טבעי', play: { prog: 'C-7 D-7b5 Ebmaj7 F-7 G-7 Abmaj7 Bb7', beat: 0.9 } },
+      { label: '{G-7 → C-7}: לא ממש חוזר הביתה', play: { prog: 'G-7 C-7' } },
+      { label: '{G7 → C-7}: עכשיו כן!', play: { prog: 'G7 C-7' } },
+      { label: '{B°7 → C-7}', play: { prog: 'B°7 C-7' } },
+      { label: '{C-maj7}: הבית של המינור ההרמוני', play: { chord: 'C-maj7', how: 'both' } },
+    ],
+    try: [
+      { p: 'בנו את {C-7}, הבית: {C}, {Eb}, {G}, {Bb}.', target: 'C4 Eb4 G4 Bb4', mode: 'set', end: 'together', chord: 'C-7' },
+      { p: 'בנו את {G7}. רמז: {B} מהמינור ההרמוני.', target: 'G4 B4 D4 F4', mode: 'set', end: 'prog', prog: 'G7 C-7', chord: 'G7' },
+      { p: 'בנו את {Abmaj7}: {Ab}, {C}, {Eb}, {G}.', target: 'Ab4 C5 Eb4 G4', mode: 'set', end: 'together', chord: 'Abmaj7' },
+    ],
+    quiz: [
+      { q: 'איזה אקורד יושב על {D} במינור?', opts: ['{D-7b5}', '{D-7}', '{Dmaj7}'], a: 0, check: { minorDia: ['C', 'natural', 2, 'D-7b5'] } },
+      { q: 'מי הדומיננטה של {C} מינור?', opts: ['{G7}', '{G-7}', '{Gmaj7}'], a: 0, check: { minorDia: ['C', 'harmonic', 5, 'G7'] } },
+      { q: 'מה המספר הרומי של {Abmaj7} ב־{C} מינור?', opts: ['{bVImaj7}', '{VImaj7}', '{IVmaj7}'], a: 0, check: { minorDia: ['C', 'natural', 6, 'Abmaj7'] } },
+      { q: 'האקורד הראשון נמשך הביתה חזק?', play: { prog: 'G7 C-7' }, opts: ['כן, יש בו {B}', 'לא, אין בו {B}'], a: 0, check: { chordHas: ['G7', 'B'] } },
+      { q: 'איזה זוג שמעתם?', play: { prog: 'G-7 C-7' }, opts: ['{G-7 → C-7}', '{G7 → C-7}'], a: 0, check: { progAns: true } },
+    ],
+  });
+
+  L.push({
+    id: 'L25', world: 7, title: 'II-V-I במינור',
+    learn: [
+      { t: 'זוכרים את {D-7 → G7 → Cmaj7}? גם למינור יש משפט כזה.' },
+      { t: 'ב־{C} מינור הוא נשמע ככה:', fig: { chips: ['D-7b5', 'G7b9', 'C-maj7'], fn: ['SD', 'D', 'T'] } },
+      { t: 'ה־{II} הוא חצי מוקטן: {D-7b5}. יש בו {Ab}, הצליל העצוב של המינור.', fig: { tower: 'D-7b5' } },
+      { t: 'ל־{G7} מוסיפים תבלין מהמינור: {b9}, הצליל {Ab}. זה נשמע דרמטי.', fig: { tower: 'G7b9' } },
+      { t: 'בסוף מגיעים הביתה ל־{C-maj7}. אפשר לסיים גם ב־{C-6}.', fig: { chips: ['C-maj7', 'C-6'] } },
+    ],
+    hear: [
+      { label: 'II-V-I ב־{C} מינור', play: { prog: 'D-7b5 G7b9 C-maj7' } },
+      { label: 'להשוואה: II-V-I ב־{C} מז׳ור', play: { prog: 'D-7 G7 Cmaj7' } },
+      { label: 'II-V-I ב־{A} מינור', play: { prog: 'B-7b5 E7b9 A-maj7' } },
+      { label: 'סוף אחר: {C-6}', play: { prog: 'D-7b5 G7b9 C-6' } },
+    ],
+    try: [
+      { p: 'בנו את {D-7b5}: {D}, {F}, {Ab}, {C}.', target: 'D4 F4 Ab4 C5', mode: 'set', end: 'together', chord: 'D-7b5' },
+      { p: 'בנו את {G7}: {G}, {B}, {D}, {F}.', target: 'G4 B4 D4 F4', mode: 'set', end: 'together', chord: 'G7' },
+      { p: 'וסוף: {C-maj7}. בסוף תשמעו את כל המשפט.', target: 'C4 Eb4 G4 B4', mode: 'set', end: 'prog', prog: 'D-7b5 G7b9 C-maj7', chord: 'C-maj7' },
+    ],
+    quiz: [
+      { q: 'מז׳ור או מינור?', play: { prog: 'D-7b5 G7b9 C-maj7' }, opts: ['מינור', 'מז׳ור'], a: 0, check: { minorIIVIplay: 'C' } },
+      { q: 'מז׳ור או מינור?', play: { prog: 'D-7 G7 Cmaj7' }, opts: ['מינור', 'מז׳ור'], a: 1 },
+      { q: 'מה חסר? {D-7b5 → ? → C-maj7}', opts: ['{G7b9}', '{G-7}', '{Ab7}'], a: 0, check: { minorIIVI: ['C', 1] } },
+      { q: 'איזה {II} יש ב־{C} מינור?', opts: ['{D-7b5}', '{D-7}', '{Dmaj7}'], a: 0, check: { minorIIVI: ['C', 0] } },
+      { q: 'מה ה־II-V-I ב־{A} מינור?', opts: ['{B-7b5 → E7b9 → A-maj7}', '{B-7 → E7 → Amaj7}', '{E-7b5 → A7b9 → D-maj7}'], a: 0, check: { minorIIVIfull: 'A' } },
+    ],
+  });
+
+  L.push({
+    id: 'L26', world: 7, title: 'צבעים חדשים: מודוסים מהמינור',
+    learn: [
+      { t: 'זוכרים את המודוסים? מתחילים אותו סולם מצליל אחר, ומקבלים צבע חדש.' },
+      { t: 'אפשר לעשות את זה גם עם המינור המלודי וההרמוני. יוצאים צבעים מיוחדים לאקורד {7}.' },
+      { t: '{C} מינור מלודי, מתחילים מ־{F}: יוצא *לידי דומיננטי*. בהיר, עם {B} ו־{Eb}.', fig: { keys: 'F4 G4 A4 B4 C5 D5 Eb5 F5', labels: 'letters', range: 'F4 F5' } },
+      { t: 'מאותו סולם, מתחילים מ־{B}: יוצא *אלטרד*. כל התבלינים מתוחים!', fig: { keys: 'B3 C4 D4 Eb4 F4 G4 A4 B4', labels: 'letters', range: 'B3 B4' } },
+      { t: '{C} מינור הרמוני, מתחילים מ־{G}: יוצא *פריגי דומיננטי*. נשמע ספרדי ומזרחי.', fig: { keys: 'G3 Ab3 B3 C4 D4 Eb4 F4 G4', labels: 'letters', range: 'G3 G4' } },
+      { t: 'על אקורד {B7alt} מנגנים את האלטרד מ־{B}. מתח גדול, ואז הביתה.', fig: { tower: 'B7alt' } },
+    ],
+    hear: [
+      { label: 'לידי דומיננטי מ־{F}', play: { n: 'F4 G4 A4 B4 C5 D5 Eb5 F5' } },
+      { label: 'אלטרד מ־{B}', play: { n: 'B3 C4 D4 Eb4 F4 G4 A4 B4' } },
+      { label: 'פריגי דומיננטי מ־{G}', play: { n: 'G3 Ab3 B3 C4 D4 Eb4 F4 G4' } },
+      { label: '{B7alt → E-7}: מתח ואז רגיעה', play: { prog: 'B7alt E-7' } },
+    ],
+    try: [
+      { p: 'נגנו לידי דומיננטי מ־{F} עד {F}. שימו לב ל־{B} ול־{Eb}.', target: 'F4 G4 A4 B4 C5 D5 Eb5 F5', mode: 'seq', range: 'F4 F5', colour: ['F', 'lydianDominant'] },
+      { p: 'נגנו פריגי דומיננטי מ־{G}: עם {Ab} ועם {B}.', target: 'G3 Ab3 B3 C4 D4 Eb4 F4 G4', mode: 'seq', range: 'G3 G4', colour: ['G', 'phrygianDominant'] },
+      { p: 'נגנו אלטרד מ־{B}: {B C D Eb F G A B}.', target: 'B3 C4 D4 Eb4 F4 G4 A4 B4', mode: 'seq', range: 'B3 B4', colour: ['B', 'altered'] },
+    ],
+    quiz: [
+      { q: 'מאיזה סולם בא הלידי הדומיננטי?', opts: ['מינור מלודי', 'מינור הרמוני', 'מז׳ור'], a: 0, check: { modeOf: ['lydianDominant', 'melodic', 4] } },
+      { q: 'מאיזה סולם בא הפריגי הדומיננטי?', opts: ['מינור הרמוני', 'מינור מלודי', 'מז׳ור'], a: 0, check: { modeOf: ['phrygianDominant', 'harmonic', 5] } },
+      { q: 'איזה צבע שמעתם?', play: { n: 'F4 G4 A4 B4 C5 D5 Eb5 F5' }, opts: ['לידי דומיננטי', 'פריגי דומיננטי'], a: 0, check: { colourPlay: 'lydianDominant' } },
+      { q: 'איזה צבע שמעתם?', play: { n: 'G3 Ab3 B3 C4 D4 Eb4 F4 G4' }, opts: ['לידי דומיננטי', 'פריגי דומיננטי'], a: 1, check: { colourPlay: 'phrygianDominant' } },
+      { q: 'לאיזה אקורד מתאימים הצבעים האלה?', opts: ['דומיננטי: {7}', 'מז׳ור: {maj7}'], a: 0 },
+    ],
+  });
+
+  /* ---------------- World 8: jazz magic ---------------- */
+  L.push({
+    id: 'L27', world: 8, title: 'דומיננטות שניוניות לעומק',
+    learn: [
+      { t: 'בשיעור 17 ראינו ש־{A7} מוביל אל {D-7}. עכשיו נכיר את כל המשפחה.' },
+      { t: 'בסולם {C} יש חמש דומיננטות שניוניות. כל אחת מובילה לאקורד אחר מהסולם.', fig: { chips: ['A7', 'B7', 'C7', 'D7', 'E7'], subs: ['V7/II', 'V7/III', 'V7/IV', 'V7/V', 'V7/VI'] } },
+      { t: 'אין דומיננטה ל־{B-7b5}: השורש שלה, {F#}, לא נמצא בסולם {C}.' },
+      { t: 'טריק: לפני הדומיננטה שמים אקורד {-7}, קווינטה מעליה. זה נקרא *שנייה יחסית*.', fig: { chips: ['A-7', 'D7', 'G7'] } },
+      { t: 'כשהיעד מינורי, השנייה היחסית יכולה להיות חצי מוקטנת: {B-7b5 → E7 → A-7}.', fig: { chips: ['B-7b5', 'E7', 'A-7'] } },
+    ],
+    hear: [
+      { label: 'II-V אל {G7}: {A-7 → D7 → G7}', play: { prog: 'A-7 D7 G7' } },
+      { label: 'II-V אל {Fmaj7}: {G-7 → C7 → Fmaj7}', play: { prog: 'G-7 C7 Fmaj7' } },
+      { label: 'II-V אל {A-7}: {B-7b5 → E7 → A-7}', play: { prog: 'B-7b5 E7 A-7' } },
+      { label: 'שיר קטן עם הכול', play: { prog: 'Cmaj7 B-7b5 E7 A-7 D7 G7 Cmaj7', beat: 0.95 } },
+    ],
+    try: [
+      { p: 'בנו את {E7}, הדרך אל {A-7}. רמז: {G#}.', target: 'E4 G#4 B4 D4', mode: 'set', end: 'prog', prog: 'E7 A-7', chord: 'E7' },
+      { p: 'בנו את {D7}: {D}, {F#}, {A}, {C}.', target: 'D4 F#4 A4 C5', mode: 'set', end: 'together', chord: 'D7' },
+      { p: 'עכשיו השנייה היחסית של {D7}: {A-7}. בסוף תשמעו II-V-I קטן.', target: 'A4 C5 E4 G4', mode: 'set', end: 'prog', prog: 'A-7 D7 G7', chord: 'A-7' },
+    ],
+    quiz: [
+      { q: 'מי מוביל אל {Fmaj7}?', opts: ['{C7}', '{F7}', '{G7}'], a: 0, check: { secdom: ['Fmaj7', 'C7'] } },
+      { q: 'מי מוביל אל {E-7}?', opts: ['{B7}', '{E7}', '{A7}'], a: 0, check: { secdom: ['E-7', 'B7'] } },
+      { q: 'מה השנייה היחסית של {D7}?', opts: ['{A-7}', '{D-7}', '{E-7}'], a: 0, check: { relII: ['D7', 'G7', 'A-7'] } },
+      { q: 'מה בא לפני {E7 → A-7}?', opts: ['{B-7b5}', '{Bmaj7}', '{D-7}'], a: 0, check: { relII: ['E7', 'A-7', 'B-7b5'] } },
+      { q: 'האקורד האמצעי רוצה לזוז?', play: { prog: 'A-7 D7 G7' }, opts: ['כן, הוא דומיננטה', 'לא, הוא בבית'], a: 0, check: { fam: '7', sym: 'D7' } },
+    ],
+  });
+
+  L.push({
+    id: 'L28', world: 8, title: 'עוד דומיננטות: תחליף הטריטון',
+    learn: [
+      { t: 'ב־{G7} מסתתר טריטון: {B} ו־{F}. הוא מה שמושך הביתה אל {C}.', fig: { keys: 'F4 B4', labels: 'letters' } },
+      { t: 'יש עוד אקורד עם אותו טריטון בדיוק: {Db7}. יש בו {F} ו־{Cb}, ו־{Cb} הוא בעצם {B}!', fig: { keys: 'Db4 F4 Ab4 Cb5', labels: 'letters' } },
+      { t: 'אז אפשר לנגן {Db7} במקום {G7}. זה נקרא *תחליף טריטון*, ובספר כותבים {SubV7}.' },
+      { t: 'השורש {Db} יורד חצי טון אל {C}, כמו להחליק במגלשה הביתה.', fig: { chips: ['D-7', 'Db7', 'Cmaj7'], fn: ['SD', 'D', 'T'] } },
+      { t: 'איך מוצאים אותו? הולכים טריטון מהשורש: מ־{G} ל־{Db}, 6 חצאי טונים.' },
+    ],
+    hear: [
+      { label: 'רגיל: {D-7 → G7 → Cmaj7}', play: { prog: 'D-7 G7 Cmaj7' } },
+      { label: 'מחליקים: {D-7 → Db7 → Cmaj7}', play: { prog: 'D-7 Db7 Cmaj7' } },
+      { label: 'הטריטון המשותף: {F} ו־{B}', play: { n: 'F4 B4', how: 'both' } },
+      { label: 'עם שנייה יחסית: {Ab-7 → Db7 → Cmaj7}', play: { prog: 'Ab-7 Db7 Cmaj7' } },
+    ],
+    try: [
+      { p: 'בנו את {Db7}: {Db}, {F}, {Ab}, {Cb}. את {Cb} מנגנים על הקליד {B}.', target: 'Db4 F4 Ab4 Cb5', mode: 'set', end: 'together', chord: 'Db7' },
+      { p: 'מצאו את השורש של התחליף של {G7}: יורדים 6 חצאי טונים מ־{G}.', target: 'Db4', mode: 'one', mark: 'G4' },
+      { p: 'בנו את {Cmaj7}, הבית. בסוף תשמעו את ההחלקה.', target: 'C4 E4 G4 B4', mode: 'set', end: 'prog', prog: 'D-7 Db7 Cmaj7', chord: 'Cmaj7' },
+    ],
+    quiz: [
+      { q: 'מה תחליף הטריטון של {G7}?', opts: ['{Db7}', '{D7}', '{C7}'], a: 0, check: { tritoneSub: ['G7', 'Db7'] } },
+      { q: 'מה תחליף הטריטון של {D7}?', opts: ['{Ab7}', '{A7}', '{G7}'], a: 0, check: { tritoneSub: ['D7', 'Ab7'] } },
+      { q: 'איזה זוג צלילים משותף ל־{G7} ול־{Db7}?', opts: ['{B F}', '{G Db}', '{D Ab}'], a: 0, check: { sharedTritone: ['G7', 'Db7'] } },
+      { q: 'האקורד האמצעי: רגיל או מחליק?', play: { prog: 'D-7 Db7 Cmaj7' }, opts: ['{Db7}: מחליק', '{G7}: רגיל'], a: 0, check: { progMid: 'Db7' } },
+      { q: 'האקורד האמצעי: רגיל או מחליק?', play: { prog: 'D-7 G7 Cmaj7' }, opts: ['{Db7}: מחליק', '{G7}: רגיל'], a: 1, check: { progMid: 'G7' } },
+    ],
+  });
+
+  L.push({
+    id: 'L29', world: 8, title: 'הובלת קולות',
+    learn: [
+      { t: 'כשעוברים מאקורד לאקורד, כל צליל הוא כמו זמר במקהלה. כל זמר רוצה ללכת כמה שפחות.' },
+      { t: 'צליל משותף נשאר במקום, והשאר זזים בצעד הכי קטן. זה נקרא *הובלת קולות*.' },
+      { t: 'הכי חשובים הם ה־3 וה־7. הם מספרים איזה אקורד זה, ולכן נקראים *צלילים מנחים*.', fig: { tower: 'G7' } },
+      { t: 'ב־{D-7} הם {F} ו־{C}. ב־{G7} הם {F} ו־{B}. ה־{F} נשאר, וה־{C} יורד ל־{B}.', fig: { keys: 'F4 B4', labels: 'letters' } },
+      { t: 'ואז ב־{Cmaj7}: {F} יורד ל־{E}, ו־{B} נשאר. כמעט לא זזנו, וזה נשמע חלק!', fig: { keys: 'E4 B4', labels: 'letters' } },
+    ],
+    hear: [
+      { label: 'צלילים מנחים: {F C → F B → E B}', play: { seq: ['F4 C5', 'F4 B4', 'E4 B4'] } },
+      { label: 'עם הבס: {D-7 → G7 → Cmaj7}', play: { seq: ['D3 F4 C5', 'G2 F4 B4', 'C3 E4 B4'] } },
+      { label: 'כולם קופצים: פחות חלק', play: { seq: ['D3 F3 A3 C4', 'G3 B3 D4 F4', 'C4 E4 G4 B4'] } },
+    ],
+    try: [
+      { p: 'נגנו את הצלילים המנחים של {D-7}: {F} ו־{C}.', target: 'F4 C5', mode: 'set', match: 'midi', end: 'together', guide: 'D-7' },
+      { p: 'עכשיו {G7}: השאירו את {F}, והורידו את {C} חצי טון.', target: 'F4 B4', mode: 'set', match: 'midi', end: 'together', guide: 'G7' },
+      { p: 'ועכשיו {Cmaj7}: {F} יורד חצי טון, ו־{B} נשאר.', target: 'E4 B4', mode: 'set', match: 'midi', end: 'together', guide: 'Cmaj7' },
+    ],
+    quiz: [
+      { q: 'מה הצלילים המנחים של {G7}?', opts: ['{B F}', '{G D}', '{G B}'], a: 0, check: { guide: 'G7' } },
+      { q: 'מה הצלילים המנחים של {Cmaj7}?', opts: ['{E B}', '{C G}', '{C E}'], a: 0, check: { guide: 'Cmaj7' } },
+      { q: 'מ־{D-7} ל־{G7}, לאן הולך ה־{C}?', opts: ['יורד חצי טון ל־{B}', 'קופץ ל־{G}'], a: 0, check: { glMove: ['D-7 G7', 'C', 'B'] } },
+      { q: 'הקולות זזו בצעדים קטנים?', play: { seq: ['F4 C5', 'F4 B4', 'E4 B4'] }, opts: ['כן, כמעט לא זזו', 'לא, הם קפצו רחוק'], a: 0, check: { smooth: true } },
+      { q: 'הקולות זזו בצעדים קטנים?', play: { seq: ['D3 F3 A3 C4', 'G3 B3 D4 F4', 'C4 E4 G4 B4'] }, opts: ['כן, כמעט לא זזו', 'לא, הם קפצו רחוק'], a: 1, check: { smooth: false } },
+    ],
+  });
+
+  L.push({
+    id: 'L30', world: 8, title: 'הירמון פונקציונלי',
+    learn: [
+      { t: 'זוכרים את שלושת התפקידים? בית, טיול ודרך הביתה.', fig: { roles: true } },
+      { t: 'אקורדים עם אותו תפקיד הם כמו שחקנים באותה עמדה. אפשר להחליף אחד בשני.' },
+      { t: 'במקום {Cmaj7} אפשר {A-7} או {E-7}. כולם בית.', fig: { chips: ['Cmaj7', 'A-7', 'E-7'], subs: ['Imaj7', 'VI-7', 'III-7'] } },
+      { t: 'במקום {Fmaj7} אפשר {D-7}. שניהם טיול.', fig: { chips: ['Fmaj7', 'D-7'], subs: ['IVmaj7', 'II-7'] } },
+      { t: 'במקום {G7} אפשר {B-7b5}, או את התחליף מהשיעור הקודם: {Db7}.', fig: { chips: ['G7', 'B-7b5', 'Db7'], subs: ['V7', 'VII-7b5', 'SubV7'] } },
+      { t: 'ככה מקבלים שיר חדש עם אותו סיפור: בית, טיול, דרך הביתה, בית.' },
+    ],
+    hear: [
+      { label: 'המקור: {Cmaj7 Fmaj7 G7 Cmaj7}', play: { prog: 'Cmaj7 Fmaj7 G7 Cmaj7' } },
+      { label: 'חדש: {A-7 D-7 Db7 Cmaj7}', play: { prog: 'A-7 D-7 Db7 Cmaj7' } },
+      { label: 'עוד גרסה: {E-7 Fmaj7 B-7b5 Cmaj7}', play: { prog: 'E-7 Fmaj7 B-7b5 Cmaj7' } },
+    ],
+    try: [
+      { p: 'החליפו את {Cmaj7} באקורד בית אחר: בנו את {A-7}.', target: 'A4 C5 E4 G4', mode: 'set', end: 'together', chord: 'A-7', replaces: 'Cmaj7' },
+      { p: 'החליפו את {Fmaj7} באקורד טיול: בנו את {D-7}.', target: 'D4 F4 A4 C5', mode: 'set', end: 'together', chord: 'D-7', replaces: 'Fmaj7' },
+      { p: 'החליפו את {G7} ב־{Db7}. בסוף תשמעו את השיר החדש.', target: 'Db4 F4 Ab4 Cb5', mode: 'set', end: 'prog', prog: 'A-7 D-7 Db7 Cmaj7', chord: 'Db7', replaces: 'G7' },
+    ],
+    quiz: [
+      { q: 'מי יכול להחליף את {Cmaj7}?', opts: ['{A-7}', '{G7}', '{D-7}'], a: 0, check: { sameFn: 'Cmaj7' } },
+      { q: 'מי יכול להחליף את {G7}?', opts: ['{Db7}', '{Fmaj7}', '{E-7}'], a: 0, check: { sameFn: 'G7' } },
+      { q: 'מי יכול להחליף את {Fmaj7}?', opts: ['{D-7}', '{B-7b5}', '{Cmaj7}'], a: 0, check: { sameFn: 'Fmaj7' } },
+      { q: 'מה התפקיד של {Db7} לפני {Cmaj7}?', opts: ['דומיננטה: דרך הביתה', 'טוניקה: בית', 'סאב־דומיננטה: טיול'], a: 0, check: { fn: ['subV7', 'D'] } },
+      { q: 'אותו סיפור? בית, טיול, דרך הביתה, בית.', play: { prog: 'A-7 D-7 Db7 Cmaj7' }, opts: ['כן, אותו סיפור', 'לא, סיפור אחר'], a: 0, check: { story: 'T SD D T' } },
     ],
   });
 
