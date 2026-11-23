@@ -1,0 +1,5 @@
+Piano samples: Salamander Grand Piano V3 by Alexander Holm
+License: Creative Commons Attribution 3.0 (CC BY 3.0) https://creativecommons.org/licenses/by/3.0/
+Source: https://archive.org/details/SalamanderGrandPianoV3 (MP3 renders as distributed via https://tonejs.github.io/audio/salamander/)
+Modifications: trimmed to 3.5 s with a fade-out, converted to mono 64 kbps MP3 for Harmona.
+Files: A1, C2, D#2 (Ds2), F#2 (Fs2), A2 ... C7, one sample every minor third.

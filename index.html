@@ -1,14 +1,14 @@
 <!doctype html>
-<html lang="he" data-theme="dark">
+<html lang="he" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>הַרְמוֹנָה – תרגול הרמוניה</title>
-<meta name="theme-color" content="#0f1216">
-<meta name="description" content="הַרְמוֹנָה – תרגול הרמוניה: מרווחים, מודוסים ודרגות כרומטיות.">
+<title>הַרְמוֹנָה – לומדים ג׳אז</title>
+<meta name="theme-color" content="#fff8ee">
+<meta name="description" content="הַרְמוֹנָה – לומדים הרמוניה של ג׳אז צעד אחר צעד, ותרגול מרווחים, מודוסים ודרגות כרומטיות.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="הרמונה">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="assets/icons/logo.svg" type="image/svg+xml">
@@ -18,40 +18,41 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&family=Rubik:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap">
 <style>
-/* Mentora console-dark skin (tokens from mentora-music.pages.dev/css/app.css) */
+/* Harmona light skin (kids-friendly, one theme for the whole app).
+   Text tokens (*-t) meet WCAG AA on --card and --bg. */
 :root {
-  --bg: #0f1216;
-  --bg2: #0a0c0f;
-  --card: #171b21;
-  --card2: #1f252d;
-  --line: #2a3039;
-  --line2: #3d4550;
-  --text: #e7eaee;
-  --muted: #9aa4b1;
-  --dim: #68727e;
-  --accent: #ffb020;
-  --accent2: #e89a00;
-  --accent-soft: #3a2d12;
-  --on-accent: #1a1206;
-  --good: #3ddc97;
-  --warn: #f5c451;
-  --bad: #ff5a5f;
-  --good-soft: #12302a;
-  --warn-soft: #352d14;
-  --bad-soft: #3b1a1d;
-  --shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 2px 8px rgba(0,0,0,.35);
-  --muted-t: #a6b0bc;
-  --accent-t: #ffc24d;
-  --good-t: #5ee6aa;
-  --bad-t: #ff8a8e;
-  --warn-t: var(--warn);
-  --accent-fill: #ffb020;
-  --accent-fill2: #ffc24d;
-  --key-w: #eceef1;
-  --key-w-line: #0a0c0f;
-  --key-b: #0c0e11;
-  --led: #3ddc97;
-  --radius: 8px;
+  --bg: #fff8ee;
+  --bg2: #f3e9da;
+  --card: #ffffff;
+  --card2: #fffbf5;
+  --line: #e8dccb;
+  --line2: #d3c4ae;
+  --text: #23243a;
+  --muted: #5d6072;
+  --dim: #858899;
+  --accent: #f5a524;
+  --accent2: #d98a06;
+  --accent-soft: #fff0d4;
+  --on-accent: #2a1a00;
+  --good: #17a34a;
+  --warn: #b7791f;
+  --bad: #e5484d;
+  --good-soft: #e5f7eb;
+  --warn-soft: #fff4dc;
+  --bad-soft: #fdecec;
+  --shadow: 0 2px 0 rgba(35,36,58,.06), 0 4px 14px rgba(35,36,58,.06);
+  --muted-t: #55586a;
+  --accent-t: #a14a00;
+  --good-t: #12783a;
+  --bad-t: #b4232a;
+  --warn-t: #8a5a0c;
+  --accent-fill: #f5a524;
+  --accent-fill2: #ffb83f;
+  --key-w: #ffffff;
+  --key-w-line: #b8ab97;
+  --key-b: #2b2d42;
+  --led: #17a34a;
+  --radius: 14px;
   --font: "Rubik", "Heebo", "Segoe UI", "Arial Hebrew", Arial, sans-serif;
   --mono: "JetBrains Mono", "Rubik", ui-monospace, monospace;
   /* aliases used by existing markup/JS */
@@ -66,7 +67,7 @@
   --f-display: var(--font);
   --f-body: var(--font);
   --f-note: var(--mono);
-  color-scheme: dark;
+  color-scheme: light;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; min-height: 100%; }
@@ -755,16 +756,47 @@ td.num, td:has(.n) {
 .share-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 </style>
+<link rel="stylesheet" href="css/kids.css">
 </head>
 <body>
 
 
 <div class="app-shell" dir="rtl">
-<section class="screen wrap" id="screen-home" data-screen="home">
+<section class="screen wrap kids" id="screen-home" data-screen="home">
+  <div id="kidsHome"></div>
+  <button type="button" class="k-adv" id="openDrills">
+    <span class="k-adv-i" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg></span>
+    <span class="k-adv-t"><b>תרגילים למתקדמים</b><span>מרווחים, מודוסים ודרגות כרומטיות</span></span>
+    <span class="k-go" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></span>
+  </button>
+  <div class="card home-install" id="installCard">
+    <div class="qhead"><span>שמירה במכשיר</span></div>
+    <button type="button" class="install-btn" id="installBtn" hidden aria-label="התקן את האפליקציה">התקן את האפליקציה</button>
+    <p class="ios-hint" id="iosInstallHint" hidden>
+      ב־iPhone/iPad: לחצו על <b>שיתוף</b> באפליקציית Safari ואז על <b>הוסף למסך הבית</b>.
+    </p>
+    <p class="hint" id="installDone" hidden style="text-align:start;margin:0">האפליקציה כבר מותקנת / רצה במסך מלא.</p>
+  </div>
+  <p class="home-legal" style="text-align:center;margin:8px 0 0">
+    <a class="linkbtn" href="privacy.html" style="min-height:44px;display:inline-flex;align-items:center">מדיניות פרטיות</a>
+  </p>
+  <p class="home-credits hint" style="text-align:center;margin:4px 0 0;font-size:.8em">
+    קרדיטים: צלילי פסנתר: <span dir="ltr">Salamander Grand Piano V3</span> מאת <span dir="ltr">Alexander Holm</span>, ברישיון
+    <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener" dir="ltr">CC BY 3.0</a>
+    <br><span lang="en" dir="ltr">Piano sounds: Salamander Grand Piano V3 by Alexander Holm, licensed CC BY 3.0.</span>
+  </p>
+</section>
+
+<section class="screen k-lesson" id="screen-lesson" data-screen="lesson" hidden>
+  <div class="k-lbar"></div>
+  <div class="k-stage" id="kStage"></div>
+</section>
+
+<section class="screen wrap" id="screen-drills" data-screen="drills" hidden>
   <div class="hud" id="homeHud"></div>
   <header class="hello">
     <div class="hello-copy">
-      <h1 id="homeTitle">שלום</h1>
+      <h1 id="homeTitle">תרגילים למתקדמים</h1>
       <p class="lead" id="homeLead">כמה דקות של הרמוניה — מרווחים, מודוסים ודרגות.</p>
     </div>
     <button type="button" class="share-btn" data-share-app aria-label="שתף קישור להרמונה"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg><span>שתף</span></button>
@@ -780,17 +812,7 @@ td.num, td:has(.n) {
     <div class="qhead"><span>כדאי לחזק</span></div>
     <p id="homeWeakText" class="hint" style="text-align:start"></p>
   </div>
-  <div class="card home-install" id="installCard">
-    <div class="qhead"><span>שמירה במכשיר</span></div>
-    <button type="button" class="install-btn" id="installBtn" hidden aria-label="התקן את האפליקציה">התקן את האפליקציה</button>
-    <p class="ios-hint" id="iosInstallHint" hidden>
-      ב־iPhone/iPad: לחצו על <b>שיתוף</b> באפליקציית Safari ואז על <b>הוסף למסך הבית</b>.
-    </p>
-    <p class="hint" id="installDone" hidden style="text-align:start;margin:0">האפליקציה כבר מותקנת / רצה במסך מלא.</p>
-  </div>
-  <p class="home-legal" style="text-align:center;margin:8px 0 0">
-    <a class="linkbtn" href="privacy.html" style="min-height:44px;display:inline-flex;align-items:center">מדיניות פרטיות</a>
-  </p>
+  <button type="button" class="btn ghost" id="backToPath">חזרה למסלול הלימוד</button>
 </section>
 
 <section class="screen wrap" id="screen-practice" data-screen="practice" hidden>
@@ -814,7 +836,7 @@ td.num, td:has(.n) {
     </div>
     <div class="header-actions">
       <button type="button" class="share-btn" data-share-app aria-label="שתף קישור להרמונה"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg><span>שתף</span></button>
-      <div class="acct" id="acct" hidden></div>
+      <div class="acct" id="acct" data-acct hidden></div>
     </div>
   </header>
 
@@ -871,6 +893,14 @@ td.num, td:has(.n) {
     </div>
   </div>
   <div class="hud" id="progHud"></div>
+  <div class="card k-pcard">
+    <div class="qhead"><span>מסלול הג׳אז שלי</span></div>
+    <div id="progKids"></div>
+  </div>
+  <div class="card">
+    <div class="qhead"><span>שמירה בכל המכשירים</span></div>
+    <div class="acct" data-acct hidden></div>
+  </div>
   <div class="card">
     <div class="qhead"><span>מטרה יומית</span><b id="progGoalLabel">0/25</b></div>
     <div class="goal-bar" id="progGoalBar"><i id="progGoalFill"></i></div>
@@ -894,11 +924,11 @@ td.num, td:has(.n) {
   <nav class="nav">
     <button type="button" class="nav-i" data-route="home" id="nav-home">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
-      <span>בית</span>
+      <span>לומדים</span>
     </button>
-    <button type="button" class="nav-i" data-route="practice" id="nav-practice">
+    <button type="button" class="nav-i" data-route="drills" id="nav-practice">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>
-      <span>תרגול</span>
+      <span>תרגילים</span>
     </button>
     <button type="button" class="nav-i" data-route="progress" id="nav-progress">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
@@ -910,6 +940,8 @@ td.num, td:has(.n) {
 
 
 <script src="js/game-core.js"></script>
+<script src="js/sync-math.js"></script>
+<script src="js/piano-sampler.js"></script>
 <script src="js/game-audio.js"></script>
 <script>
 (() => {
@@ -1213,7 +1245,8 @@ td.num, td:has(.n) {
     $('levels').querySelectorAll('.chip').forEach(b => b.onclick = () => { st.level = +b.dataset.v; save(); renderLevels(); next(); });
   }
   function renderStats() {
-    let r = 0, t = 0; Object.values(st.stats).forEach(s => { r += s.r; t += s.t; });
+    // kids-* entries are the learning path (stars/completions), not drill answers
+    let r = 0, t = 0; Object.entries(st.stats).forEach(([id, s]) => { if (id.indexOf('kids-') === 0) return; r += s.r; t += s.t; });
     const weak = allTypes().map(x => ({ x, s: st.stats[x.id] })).filter(o => o.s && o.s.t >= 5)
       .sort((a, b) => a.s.r / a.s.t - b.s.r / b.s.t)[0];
     $('stats').innerHTML = t ? `<span>נענו <strong>${t}</strong></span><span>הצלחה <strong>${Math.round(100 * r / t)}%</strong></span>` +
@@ -1414,16 +1447,33 @@ td.num, td:has(.n) {
     sync,
     get st() { return st; },
     persist: () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} },
-    refresh: () => { renderTabs(); renderTypes(); renderLevels(); renderStats(); },
+    refresh: () => { renderTabs(); renderTypes(); renderLevels(); renderStats(); if (window.HPKids && HPKids.refresh) HPKids.refresh(); },
     renderAll: () => { if (!EX[st.topic]) st.topic = 'intervals'; if (![1, 2, 3].includes(st.level)) st.level = 1; renderAll(); },
     setTopic(t) { st.topic = t; if (!st.type[t] || !EX[t].types.find(x => x.id === st.type[t])) st.type[t] = EX[t].types[0].id; save(); },
     EX,
   };
   window.HPDrill = window.__hp;
+  // another tab (or the installed app) saved: take its state before this tab can overwrite it.
+  // Progress never goes down here: stats keep the per-key max of r and t (HP.syncMath.mergeStored).
+  window.addEventListener('storage', e => {
+    if (e.key !== KEY || !e.newValue || !(window.HP && HP.syncMath && HP.core)) return;
+    let raw; try { raw = JSON.parse(e.newValue); } catch (err) { return; }
+    if (!raw || typeof raw !== 'object') return;
+    st = HP.syncMath.mergeStored(st, raw);
+    if (!EX[st.topic]) st.topic = 'intervals';
+    if (![1, 2, 3].includes(st.level)) st.level = 1;
+    if (HP.syncMath.gains(raw, st)) window.__hp.persist();
+    window.__hp.refresh();
+    if (window.HPGame && HPGame.refreshHud) HPGame.refreshHud();
+  });
   renderAll();
   if (window.HPGame) HPGame.init();
 })();
 </script>
+<script src="js/kids-music.js"></script>
+<script src="js/kids-lessons.js"></script>
+<script src="js/kids-core.js"></script>
+<script src="js/kids-ui.js"></script>
 <script src="js/game-ui.js"></script>
 <script type="module">
 // Google sign-in + progress sync (Firebase Auth + Firestore, one doc per user: users/{uid}).
@@ -1451,26 +1501,25 @@ const auth = getAuth(app), db = getFirestore(app);
 
 // meta: which account this browser's progress belongs to, and answers not yet in the cloud
 const MKEY = 'harmony-practice-sync-v1';
+const SM = window.HP.syncMath;
 let meta = { uid: null, pending: {}, reset: false };
-try { const m = JSON.parse(localStorage.getItem(MKEY)); if (m) meta = Object.assign(meta, m); } catch (e) {}
+try { const m = JSON.parse(localStorage.getItem(MKEY)); if (m) meta = SM.readMeta(m); } catch (e) {}
 const saveMeta = () => { try { localStorage.setItem(MKEY, JSON.stringify(meta)); } catch (e) {} };
+// re-read before changing it, so a delta queued by another tab of the same account is kept
+const reloadMeta = () => {
+  try { const m = JSON.parse(localStorage.getItem(MKEY)); if (m && m.uid === meta.uid) meta = SM.readMeta(m); } catch (e) {}
+};
+window.addEventListener('storage', e => {
+  if (e.key !== MKEY || !e.newValue) return;
+  try { const m = JSON.parse(e.newValue); if (m && typeof m === 'object') meta = SM.readMeta(m); } catch (err) {}
+});
 
 let user = null, ref = null, unsub = null, cloud = null, prefsLoaded = false;
 let inflight = null, timer = null, flushing = null, gen = 0;
 
-const add = (a, b, sign = 1) => {
-  const out = JSON.parse(JSON.stringify(a || {}));
-  for (const [id, s] of Object.entries(b || {})) {
-    const o = out[id] || (out[id] = { r: 0, t: 0 });
-    o.r += sign * s.r; o.t += sign * s.t;
-  }
-  return out;
-};
-const unsent = () => inflight ? add(meta.pending, inflight, -1) : meta.pending;
-
 // local view = what the cloud has (incl. writes on their way) + answers not yet sent
 function applyCloud() {
-  hp.st.stats = add(meta.reset || !cloud ? {} : cloud.stats, unsent());
+  hp.st.stats = SM.applyCloud(cloud && cloud.stats, meta.pending, inflight, meta.reset);
   hp.persist();
 }
 
@@ -1542,9 +1591,7 @@ async function doFlush() {
         await setDoc(ref, base, { merge: true });
       } else throw e;
     }
-    if (user && user.uid === uidAtStart && gen === genAtStart) { meta.pending = add(meta.pending, inflight, -1);
-      for (const [id, s] of Object.entries(meta.pending)) if (!s.r && !s.t) delete meta.pending[id];
-      saveMeta(); }
+    if (user && user.uid === uidAtStart && gen === genAtStart) { reloadMeta(); meta.pending = SM.afterSend(meta.pending, inflight); saveMeta(); }
     inflight = null;
   } catch (e) {
     inflight = null;
@@ -1553,25 +1600,30 @@ async function doFlush() {
   }
 }
 
-sync.onRec = (id, ok) => {
-  if (!meta.uid) return;
+// queue a stats increment for the cloud (drill answers and kids lesson progress)
+sync.onAdd = (id, dr, dt) => {
+  if (!meta.uid || (!dr && !dt)) return;
+  reloadMeta();
   const p = meta.pending[id] || (meta.pending[id] = { r: 0, t: 0 });
-  p.t++; if (ok) p.r++;
+  p.r += dr | 0; p.t += dt | 0;
   saveMeta();
 };
+sync.onRec = (id, ok) => sync.onAdd(id, ok ? 1 : 0, 1);
 sync.onSave = () => { if (user) schedule(); };
 sync.onReset = () => { if (meta.uid) { gen++; inflight = null; meta.pending = {}; meta.reset = true; saveMeta(); } };
 
 function render(msg) {
-  box.hidden = false;
-  if (user) {
-    box.innerHTML = `<span>מחובר: <span class="who"></span></span><button class="linkbtn" id="signout">התנתקות</button>`;
-    box.querySelector('.who').textContent = user.displayName || user.email || '';
-    document.getElementById('signout').onclick = doSignOut;
-  } else {
-    box.innerHTML = `<button class="gbtn" id="signin">התחברות עם גוגל</button>${msg ? `<span>${msg}</span>` : ''}`;
-    document.getElementById('signin').onclick = doSignIn;
-  }
+  document.querySelectorAll('[data-acct]').forEach(box => {
+    box.hidden = false;
+    if (user) {
+      box.innerHTML = `<span>מחובר: <span class="who"></span></span><button class="linkbtn" data-signout>התנתקות</button>`;
+      box.querySelector('.who').textContent = user.displayName || user.email || '';
+      box.querySelector('[data-signout]').onclick = doSignOut;
+    } else {
+      box.innerHTML = `<button class="gbtn" data-signin>התחברות עם גוגל</button>${msg ? `<span>${msg}</span>` : box.id === 'acct' ? '' : `<span>כך ההתקדמות והכוכבים נשמרים בכל המכשירים.</span>`}`;
+      box.querySelector('[data-signin]').onclick = doSignIn;
+    }
+  });
 }
 
 async function doSignIn() {
@@ -1698,7 +1750,7 @@ render();
   const SHARE = {
     url: "https://harmona-music.pages.dev/",
     title: "הַרְמוֹנָה",
-    text: "הַרְמוֹנָה – תרגול הרמוניה: מרווחים, מודוסים ודרגות כרומטיות."
+    text: "הַרְמוֹנָה – לומדים ג׳אז צעד אחר צעד, ותרגול מרווחים, מודוסים ודרגות כרומטיות."
   };
   const shareToast = document.createElement("div");
   shareToast.id = "shareToast";

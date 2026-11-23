@@ -3,6 +3,9 @@
   'use strict';
   const G = (window.HPGame = {});
   const TOPIC_HE = { intervals: 'מרווחים', modes: 'מודוסים', chroma: 'דרגות כרומטיות' };
+  const LOG_HE = Object.assign({ kids: 'שיעור ג׳אז' }, TOPIC_HE);
+  const ROUTES = ['home', 'drills', 'practice', 'progress', 'summary', 'lesson'];
+  function kids() { return window.HPKids; }
   const TOPIC_DESC = {
     intervals: 'ספירה, שמות ובנייה לפי הספר',
     modes: 'בנייה, זיהוי וסולם האב',
@@ -22,20 +25,25 @@
   G.route = function (name) {
     routeName = name;
     G.clearCelebrations();
-    ['home', 'practice', 'progress', 'summary'].forEach(function (id) {
+    ROUTES.forEach(function (id) {
       const el = $('screen-' + id);
       if (el) el.hidden = id !== name;
     });
+    const drillish = name === 'drills' || name === 'practice' || name === 'summary';
     document.querySelectorAll('.nav-i').forEach(function (b) {
-      b.classList.toggle('on', b.dataset.route === name || (name === 'summary' && b.dataset.route === 'practice'));
+      const on = b.dataset.route === name || (drillish && b.dataset.route === 'drills');
+      b.classList.toggle('on', on);
+      if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     });
     if (name === 'practice') {
       if (hp() && hp().renderAll) hp().renderAll();
       G.refreshHud();
     }
-    if (name === 'home') G.renderHome();
+    if (name === 'drills') G.renderDrills();
     if (name === 'progress') G.renderProgress();
-    try { history.replaceState(null, '', '#' + (name === 'summary' ? 'practice' : name)); } catch (e) {}
+    if (kids() && kids().onRoute) kids().onRoute(name);
+    if (name !== 'lesson') window.scrollTo(0, 0);
+    try { history.replaceState(null, '', '#' + (name === 'summary' ? 'practice' : name === 'lesson' ? 'home' : name)); } catch (e) {}
   };
 
   function hudHTML() {
@@ -67,7 +75,7 @@
       if (audio()) audio().setMute(st().mute);
       save();
       G.refreshHud();
-      if (routeName === 'home') G.renderHome();
+      if (routeName === 'drills') G.renderDrills();
       if (routeName === 'progress') G.renderProgress();
     };
   }
@@ -85,13 +93,18 @@
     }
   };
 
+  /* home = kids learning path; also refresh the drills screen data */
   G.renderHome = function () {
+    if (routeName === 'drills') G.renderDrills();
+    if (kids() && routeName === 'home') kids().renderHome();
+  };
+
+  /* "advanced drills" screen (the former home) */
+  G.renderDrills = function () {
     const C = core(); if (!C) return;
     const s = st();
     $('homeHud').innerHTML = hudHTML();
     bindMute($('homeHud'));
-    const hour = new Date().getHours();
-    $('homeTitle').textContent = hour < 12 ? 'בוקר טוב' : hour < 18 ? 'צהריים טובים' : 'ערב טוב';
     const day = C.dailyProgress(s);
     $('homeGoalLabel').textContent = day.answered + '/' + day.goal;
     $('homeGoalFill').style.width = Math.min(100, Math.round(100 * day.answered / day.goal)) + '%';
@@ -114,6 +127,7 @@
     // weak tip
     let weak = null, worst = 1;
     Object.keys(s.stats || {}).forEach(function (id) {
+      if (id.indexOf('kids-') === 0) return; /* learning-path progress, not drill accuracy */
       const x = s.stats[id];
       if (x && x.t >= 5) {
         const a = x.r / x.t;
@@ -137,6 +151,7 @@
     const xp = C.xpLevel(s.points | 0);
     $('progHud').innerHTML = hudHTML();
     bindMute($('progHud'));
+    if (kids() && kids().renderProgress) kids().renderProgress();
     const played = Object.keys(s.days || {}).filter(function (k) { return (s.days[k].answered | 0) > 0; }).length;
     $('progMeta').textContent = played + ' ימי אימון · שיא רצף ' + (s.streak.best | 0) + ' · רמה ' + xp.level;
     const day = C.dailyProgress(s);
@@ -190,7 +205,7 @@
       ? log.map(function (e) {
           const d = new Date(e.ts);
           const pct = e.n ? Math.round(100 * e.ok / e.n) : 0;
-          return '<li><span class="kind">' + (TOPIC_HE[e.topic] || e.topic) + '</span><span class="muted small">' + d.getDate() + '.' + (d.getMonth() + 1) + '</span><b>+' + e.points + '</b><span class="muted small">' + e.ok + '/' + e.n + ' · ' + pct + '%</span></li>';
+          return '<li><span class="kind">' + (LOG_HE[e.topic] || e.topic) + '</span><span class="muted small">' + d.getDate() + '.' + (d.getMonth() + 1) + '</span><b>+' + e.points + '</b><span class="muted small">' + e.ok + '/' + e.n + ' · ' + pct + '%</span></li>';
         }).join('')
       : '<li class="empty">עוד אין סטים. מתחילים מהבית או מהתרגול.</li>';
   };
@@ -278,12 +293,16 @@
     const sumAgain = $('sumAgain');
     if (sumAgain) sumAgain.onclick = function () { st().session = null; save(); G.route('practice'); };
     const sumHome = $('sumHome');
-    if (sumHome) sumHome.onclick = function () { G.route('home'); };
+    if (sumHome) sumHome.onclick = function () { G.route('drills'); };
+    const od = $('openDrills');
+    if (od) od.onclick = function () { G.route('drills'); };
+    const bp = $('backToPath');
+    if (bp) bp.onclick = function () { G.route('home'); };
     const sumProg = $('sumProg');
     if (sumProg) sumProg.onclick = function () { G.route('progress'); };
 
     const hash = (location.hash || '#home').replace(/^#/, '') || 'home';
-    const initial = ['home', 'practice', 'progress'].includes(hash) ? hash : 'home';
+    const initial = ['home', 'drills', 'practice', 'progress'].includes(hash) ? hash : 'home';
     G.route(initial);
   };
 
