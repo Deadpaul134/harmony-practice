@@ -123,5 +123,67 @@
     };
   };
 
+  /* One click on a quiz option. `tries` = wrong tries on this question so far.
+     Only the first try is recorded (XP, day, streak); a retry is free; a second miss reveals.
+     Returns what the caller applies: new tries, points and first-try count to add. */
+  K.answerQuiz = function (st, tries, ok, ts) {
+    const first = (tries | 0) === 0;
+    const out = { done: false, reveal: false, tries: tries | 0, pts: 0, firstOk: 0, recorded: first };
+    if (ok) {
+      out.done = true;
+      if (first) { out.pts = K.recordAnswer(st, true, ts).pts; out.firstOk = 1; }
+    } else {
+      out.tries++;
+      if (first) K.recordAnswer(st, false, ts);
+      else { out.done = true; out.reveal = true; }
+    }
+    return out;
+  };
+
+  /* Commit a lesson run once: run = { lesson: { id, quiz }, firstOk, quizPts, saved, result }.
+     Returns the finishLesson result the first time, null when the run was already committed. */
+  K.commitLesson = function (st, lessons, run, ts) {
+    if (!run || run.saved) return null;
+    const res = K.finishLesson(st, lessons, run.lesson.id, run.firstOk | 0, run.lesson.quiz.length, run.quizPts | 0, ts);
+    run.saved = true;
+    run.result = res;
+    return res;
+  };
+
+  /* ---------- resume a lesson after leaving or reloading (device-only, never synced) ---------- */
+  K.RESUME_KEY = 'harmona-kids-resume';
+  K.PHASES = ['learn', 'hear', 'try', 'quiz'];
+
+  /* Position to save for a run. On the quiz, a resolved question moves the position to the next
+     one, and a question with a recorded first try resumes with tries = 1, so XP already given is
+     never given again. run = { lesson, phase, i, firstOk, quizPts, q: { i, tries, done } | null } */
+  K.resumeEntry = function (run) {
+    if (!run || !run.lesson || K.PHASES.indexOf(run.phase) < 0) return null;
+    let i = run.i | 0, tries = 0;
+    if (run.phase === 'quiz' && run.q && run.q.i === i) {
+      if (run.q.done) i++;
+      else if (run.q.tries > 0) tries = 1;
+    }
+    return { id: run.lesson.id, phase: run.phase, i: i, firstOk: run.firstOk | 0, quizPts: run.quizPts | 0, tries: tries };
+  };
+
+  /* Where to continue, or null: the lesson must exist, be unlocked and not completed yet,
+     and the position must fit the lesson. */
+  K.resumeState = function (st, lessons, entry) {
+    if (!entry || typeof entry !== 'object') return null;
+    const idx = lessons.findIndex(function (l) { return l.id === entry.id; });
+    if (idx < 0 || !K.unlocked(st, lessons, idx) || K.done(st, entry.id)) return null;
+    const l = lessons[idx];
+    if (K.PHASES.indexOf(entry.phase) < 0) return null;
+    const len = entry.phase === 'hear' ? 1 : (l[entry.phase] || []).length;
+    const i = entry.i | 0;
+    if (i < 0 || i >= len) return null;
+    if (entry.phase === 'learn' && i === 0) return null; /* nothing to continue */
+    const quizI = entry.phase === 'quiz' ? i : 0;
+    const firstOk = Math.max(0, Math.min(quizI, entry.firstOk | 0));
+    const quizPts = Math.max(0, Math.min(quizI * K.XP.answer, entry.quizPts | 0));
+    return { idx: idx, phase: entry.phase, i: i, firstOk: firstOk, quizPts: quizPts, tries: entry.phase === 'quiz' && entry.tries ? 1 : 0 };
+  };
+
   if (typeof module !== 'undefined' && module.exports) module.exports = K;
 })(typeof window !== 'undefined' ? window : globalThis);

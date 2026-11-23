@@ -273,19 +273,22 @@
     const xp = C.xpLevel(s.points | 0);
     const hour = new Date().getHours();
     const hello = hour < 12 ? 'בוקר טוב!' : hour < 18 ? 'צהריים טובים!' : 'ערב טוב!';
-    const next = nextI == null ? null : LESSONS[nextI];
+    const resume = KU.resumable();
+    const heroI = resume ? resume.idx : nextI;
+    const next = heroI == null ? null : LESSONS[heroI];
     const nw = next ? worldOf(next) : WORLDS[WORLDS.length - 1];
     let hero;
     if (next) {
-      const fresh = tot.done === 0;
+      const fresh = tot.done === 0 && !resume;
+      const label = resume ? 'להמשיך מאיפה שעצרנו' : fresh ? 'בואו נתחיל' : 'להמשיך';
       hero = `<div class="k-hero w-${nw.color}">
         <div class="k-hero-art" aria-hidden="true">${I[nw.icon]}</div>
         <div class="k-hero-copy">
           <p class="k-hello">${hello}</p>
           <h1 class="k-h1">${fresh ? 'מוכנים ללמוד ג׳אז?' : 'ממשיכים מאיפה שעצרנו'}</h1>
-          <p class="k-next">שיעור ${next.n}: ${esc(next.title)}</p>
+          <p class="k-next">שיעור ${next.n}: ${esc(next.title)}${resume ? ` · ${STEP_NAMES[PHASES.indexOf(resume.phase)]}` : ''}</p>
         </div>
-        <button type="button" class="k-btn k-btn-xl" data-open="${nextI}">${fresh ? 'בואו נתחיל' : 'להמשיך'}<i>${I.arrow}</i></button>
+        <button type="button" class="k-btn k-btn-xl" data-open="${heroI}"${resume ? ' data-resume="1"' : ''}>${label}<i>${I.arrow}</i></button>
       </div>`;
     } else {
       hero = `<div class="k-hero w-${nw.color}">
@@ -334,7 +337,8 @@
         const idx = +b.dataset.open;
         if (!K.unlocked(st(), LESSONS, idx)) { toast('השיעור ייפתח אחרי שתסיימו את השיעור הקודם'); return; }
         if (audio()) audio().unlock();
-        KU.open(idx);
+        const from = b.dataset.resume ? KU.resumable() : null;
+        KU.open(idx, from && from.idx === idx ? from : null);
       };
     });
   };
@@ -364,11 +368,31 @@
   };
 
   /* ---------- lesson player ---------- */
-  let L = null; /* { idx, lesson, phase, i, quiz:{...}, try:{...}, result } */
+  let L = null; /* { idx, lesson, phase, i, q, result, quizPts, firstOk, saved, track } */
 
-  KU.open = function (idx) {
+  /* mid-lesson position, this device only (never in the synced state) */
+  function loadResume() {
+    try { return JSON.parse(localStorage.getItem(K.RESUME_KEY)); } catch (e) { return null; }
+  }
+  function saveResume() {
+    if (!L || !L.track || L.saved || L.phase === 'done') return;
+    const e = K.resumeEntry(L);
+    try { if (e) localStorage.setItem(K.RESUME_KEY, JSON.stringify(e)); } catch (err) {}
+  }
+  function clearResume() { try { localStorage.removeItem(K.RESUME_KEY); } catch (e) {} }
+  KU.resumable = () => K.resumeState(st(), LESSONS, loadResume());
+
+  KU.open = function (idx, from) {
     const lesson = LESSONS[idx];
-    L = { idx, lesson, phase: 'learn', i: 0, q: null, result: null, quizPts: 0, firstOk: 0 };
+    L = { idx, lesson, phase: 'learn', i: 0, q: null, result: null, quizPts: 0, firstOk: 0, saved: false,
+      track: !K.done(st(), lesson.id) };
+    if (from && from.idx === idx) {
+      Object.assign(L, { phase: from.phase, i: from.i, firstOk: from.firstOk, quizPts: from.quizPts });
+      if (from.phase === 'quiz' && from.tries) {
+        const q = lesson.quiz[from.i];
+        L.q = { i: from.i, order: K.shuffleOrder(q.opts.length, Math.random), tries: 1, done: false, wrong: [] };
+      }
+    }
     if (window.HPGame && HPGame.route) HPGame.route('lesson'); else showLessonScreen();
     renderLesson();
   };
@@ -412,6 +436,7 @@
     if (L.phase === 'quiz') stage.innerHTML = head + quizHTML();
     if (L.phase === 'done') stage.innerHTML = doneHTML();
     bindStage(stage);
+    saveResume();
     const h = stage.querySelector('[data-focus]');
     window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
     if (h) h.focus({ preventScroll: true });
@@ -587,31 +612,27 @@
         const ok = oi === q.a;
         const A = audio();
         if (A) { A.setMute(!!st().mute); A.unlock(); }
+        const r = K.answerQuiz(st(), qs.tries, ok);
+        qs.tries = r.tries; qs.done = r.done;
+        L.firstOk += r.firstOk; L.quizPts += r.pts;
+        if (r.done) resolved();
+        else saveResume();
+        if (r.recorded) save();
         if (ok) {
-          qs.done = true;
           b.classList.add('ok');
-          let msg = 'נכון!';
-          if (qs.tries === 0) {
-            const r = K.recordAnswer(st(), true);
-            L.firstOk++; L.quizPts += r.pts;
-            msg = `נכון! <span class="k-xp" dir="ltr">+${r.pts} XP</span>`;
-            save();
-          } else msg = 'נכון! כל הכבוד שניסיתם שוב.';
+          const msg = r.firstOk ? `נכון! <span class="k-xp" dir="ltr">+${r.pts} XP</span>` : 'נכון! כל הכבוד שניסיתם שוב.';
           if (A) A.ding();
           fb.className = 'k-qfb good'; fb.innerHTML = msg;
           lockOpts();
         } else {
-          qs.tries++;
           qs.wrong.push(oi);
           b.classList.add('bad'); b.disabled = true;
           if (A) A.wrong();
-          if (qs.tries === 1) {
-            K.recordAnswer(st(), false); save();
+          if (!r.done) {
             fb.className = 'k-qfb oops';
             fb.textContent = q.play ? 'כמעט! תקשיבו שוב ונסו עוד פעם.' : 'כמעט! נסו עוד פעם.';
             return;
           }
-          qs.done = true;
           const right = stage.querySelector(`.k-opt[data-o="${q.a}"]`);
           if (right) right.classList.add('ok', 'reveal');
           fb.className = 'k-qfb oops';
@@ -624,16 +645,25 @@
       stage.querySelectorAll('.k-opt').forEach((x) => { x.disabled = true; });
       if (nb) { nb.hidden = false; nb.focus({ preventScroll: true }); }
     }
+    /* question resolved: the last one commits the lesson right away, so leaving now
+       (X, Escape, back, reload) keeps it done; otherwise remember the next question */
+    function resolved() {
+      if (L.i === L.lesson.quiz.length - 1) commit();
+      else saveResume();
+    }
   }
 
-  /* done */
-  function finish() {
-    const total = L.lesson.quiz.length;
-    const res = K.finishLesson(st(), LESSONS, L.lesson.id, L.firstOk, total, L.quizPts);
+  /* done: commit once (K.commitLesson guards with L.saved), then the celebration screen */
+  function commit() {
+    const res = K.commitLesson(st(), LESSONS, L);
+    if (!res) return;
     const sync = hp().sync;
     if (sync && sync.onAdd) sync.onAdd(res.delta.id, res.delta.r, res.delta.t);
     save();
-    L.result = res;
+    clearResume();
+  }
+  function finish() {
+    commit();
     L.phase = 'done'; L.i = 0;
     renderLesson();
     const A = audio();

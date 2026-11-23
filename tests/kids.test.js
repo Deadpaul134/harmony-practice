@@ -776,4 +776,171 @@ check('service worker precaches the new files', () => {
   assert.ok(v && +v[1] >= 6, 'cache version bumped to ha-v6 or later for worlds 6-8');
 });
 
+/* ---------- saving a lesson (commit point, resume, sync math, other tabs) ---------- */
+const SM = require('../js/sync-math.js');
+const roundTrip = (s) => CORE.migrateState(JSON.parse(JSON.stringify(s)));
+
+check('complete lesson -> reload -> still complete, next unlocked', () => {
+  const s = fresh();
+  K.finishLesson(s, LESSONS, 'L01', 3, 4, 30, TS);
+  const back = roundTrip(s);
+  assert.strictEqual(K.done(back, 'L01'), true);
+  assert.strictEqual(K.unlocked(back, LESSONS, 1), true);
+  assert.strictEqual(K.nextIndex(back, LESSONS), 1);
+  assert.strictEqual(K.stars(back, 'L01'), 2);
+});
+
+check('sync math: pending kids delta survives a cloud snapshot without kids keys', () => {
+  const s = fresh();
+  const d = K.finishLesson(s, LESSONS, 'L01', 4, 4, 0, TS).delta;
+  const pending = SM.add({}, { [d.id]: { r: d.r, t: d.t } });
+  const cloud = { 'iv-count': { r: 3, t: 5 } };
+  const st1 = Object.assign(fresh(), { stats: SM.applyCloud(cloud, pending, null, false) });
+  assert.strictEqual(K.done(st1, 'L01'), true);
+  assert.deepStrictEqual(st1.stats['iv-count'], { r: 3, t: 5 });
+  assert.strictEqual(SM.add(cloud, {}).hasOwnProperty('kids-L01'), false, 'inputs untouched');
+});
+
+check('sync math: snapshot arriving late (after finish and after the write) -> still done', () => {
+  const pending = { 'kids-L01': { r: 3, t: 1 } };
+  // snapshot arrives before the write: cloud lacks the lesson, pending carries it
+  let stats = SM.applyCloud({}, pending, null, false);
+  assert.strictEqual(K.done({ stats }, 'L01'), true);
+  // write sent and confirmed, pending cleared; the late snapshot now has the lesson
+  const after = SM.afterSend(pending, pending);
+  assert.deepStrictEqual(after, {});
+  stats = SM.applyCloud({ 'kids-L01': { r: 3, t: 1 } }, after, null, false);
+  assert.deepStrictEqual(stats['kids-L01'], { r: 3, t: 1 });
+  // no snapshot yet / no doc: local view is the unsent deltas
+  assert.strictEqual(K.done({ stats: SM.applyCloud(null, pending, null, false) }, 'L01'), true);
+});
+
+check('sync math: inflight write -> no double count', () => {
+  const pending = { 'kids-L01': { r: 3, t: 1 } };
+  const inflight = JSON.parse(JSON.stringify(pending));
+  // the snapshot already includes our write (latency compensation) while it is in flight
+  const stats = SM.applyCloud({ 'kids-L01': { r: 3, t: 1 } }, pending, inflight, false);
+  assert.deepStrictEqual(stats['kids-L01'], { r: 3, t: 1 });
+  // a new lesson finished during the write is still counted once
+  const p2 = SM.add(pending, { 'kids-L02': { r: 2, t: 1 } });
+  const s2 = SM.applyCloud({ 'kids-L01': { r: 3, t: 1 } }, p2, inflight, false);
+  assert.deepStrictEqual([s2['kids-L01'], s2['kids-L02']], [{ r: 3, t: 1 }, { r: 2, t: 1 }]);
+  assert.deepStrictEqual(SM.afterSend(p2, inflight), { 'kids-L02': { r: 2, t: 1 } });
+  // reset wipes the cloud view, keeps only what is unsent
+  assert.deepStrictEqual(SM.applyCloud({ 'kids-L01': { r: 3, t: 1 } }, {}, null, true), {});
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  assert.ok(/SM\.applyCloud\(/.test(html) && /SM\.afterSend\(/.test(html), 'index.html uses the tested helpers');
+  const a = html.indexOf('js/game-core.js'), b = html.indexOf('js/sync-math.js'), c = html.indexOf("const KEY = 'harmony-practice-v1'");
+  assert.ok(a > 0 && a < b && b < c, 'sync-math loads after game-core, before the app script');
+});
+
+check('commit at the last answer, then "לסיום": the lesson counts once', () => {
+  const s = fresh();
+  const run = { lesson: byId('L01'), firstOk: 4, quizPts: 40, saved: false, result: null };
+  const res = K.commitLesson(s, LESSONS, run, TS);
+  assert.ok(res && run.saved && run.result === res);
+  const pts = s.points;
+  assert.strictEqual(K.commitLesson(s, LESSONS, run, TS), null, 'second commit is a no-op');
+  assert.deepStrictEqual(s.stats['kids-L01'], { r: 3, t: 1 });
+  assert.strictEqual(s.points, pts);
+  assert.strictEqual(s.log.length, 1);
+  // leaving right after the last answer: the reloaded state is already done
+  assert.strictEqual(K.done(roundTrip(s), 'L01'), true);
+  const ui = fs.readFileSync(path.join(__dirname, '..', 'js', 'kids-ui.js'), 'utf8');
+  assert.ok(/L\.i === L\.lesson\.quiz\.length - 1\) commit\(\)/.test(ui), 'last answer commits');
+  assert.ok(/function finish\(\) \{\s*commit\(\);/.test(ui), 'finish only commits if not yet saved');
+});
+
+check('quiz answers: first try scores once, retry and reveal are free', () => {
+  const s = fresh();
+  let r = K.answerQuiz(s, 0, true, TS);
+  assert.deepStrictEqual([r.done, r.pts, r.firstOk, r.recorded], [true, 10, 1, true]);
+  r = K.answerQuiz(s, 0, false, TS);
+  assert.deepStrictEqual([r.done, r.tries, r.pts, r.recorded], [false, 1, 0, true]);
+  const before = JSON.stringify(s);
+  r = K.answerQuiz(s, 1, true, TS);
+  assert.deepStrictEqual([r.done, r.pts, r.firstOk, r.recorded], [true, 0, 0, false]);
+  r = K.answerQuiz(s, 1, false, TS);
+  assert.deepStrictEqual([r.done, r.reveal, r.recorded], [true, true, false]);
+  assert.strictEqual(JSON.stringify(s), before, 'retries do not touch the state');
+  assert.strictEqual(s.points, 10);
+});
+
+check('resume: position saved, unlocked + unfinished only, answered questions not re-scored', () => {
+  const l = byId('L01');
+  const s = fresh();
+  // question 0 answered right first time -> resume at question 1 with its points kept
+  let e = K.resumeEntry({ lesson: l, phase: 'quiz', i: 0, firstOk: 1, quizPts: 10, q: { i: 0, tries: 0, done: true } });
+  assert.deepStrictEqual(e, { id: 'L01', phase: 'quiz', i: 1, firstOk: 1, quizPts: 10, tries: 0 });
+  let r = K.resumeState(s, LESSONS, JSON.parse(JSON.stringify(e)));
+  assert.deepStrictEqual(r, { idx: 0, phase: 'quiz', i: 1, firstOk: 1, quizPts: 10, tries: 0 });
+  // one wrong first try recorded on question 1 -> resumes with tries 1: no XP the second time
+  e = K.resumeEntry({ lesson: l, phase: 'quiz', i: 1, firstOk: 1, quizPts: 10, q: { i: 1, tries: 1, done: false } });
+  r = K.resumeState(s, LESSONS, e);
+  assert.strictEqual(r.tries, 1);
+  const pts = s.points;
+  assert.strictEqual(K.answerQuiz(s, r.tries, true, TS).pts, 0);
+  assert.strictEqual(s.points, pts);
+  // other phases keep their step
+  assert.deepStrictEqual(K.resumeState(s, LESSONS, K.resumeEntry({ lesson: l, phase: 'try', i: 0, firstOk: 0, quizPts: 0, q: null })),
+    { idx: 0, phase: 'try', i: 0, firstOk: 0, quizPts: 0, tries: 0 });
+  assert.strictEqual(K.resumeState(s, LESSONS, { id: 'L01', phase: 'learn', i: 0 }), null, 'nothing to continue at the start');
+  // locked, completed, unknown or out-of-range entries are ignored
+  assert.strictEqual(K.resumeState(s, LESSONS, { id: 'L02', phase: 'hear', i: 0 }), null, 'locked');
+  K.finishLesson(s, LESSONS, 'L01', 4, 4, 0, TS);
+  assert.strictEqual(K.resumeState(s, LESSONS, { id: 'L01', phase: 'hear', i: 0 }), null, 'completed');
+  assert.ok(K.resumeState(s, LESSONS, { id: 'L02', phase: 'hear', i: 0 }), 'now unlocked');
+  assert.strictEqual(K.resumeState(s, LESSONS, { id: 'L99', phase: 'hear', i: 0 }), null);
+  assert.strictEqual(K.resumeState(s, LESSONS, { id: 'L02', phase: 'quiz', i: 99 }), null);
+  assert.strictEqual(K.resumeState(s, LESSONS, { id: 'L02', phase: 'done', i: 0 }), null);
+  assert.strictEqual(K.resumeState(s, LESSONS, null), null);
+  // tampered counters are clamped to what the answered questions could give
+  r = K.resumeState(s, LESSONS, { id: 'L02', phase: 'quiz', i: 2, firstOk: 9, quizPts: 999 });
+  assert.deepStrictEqual([r.firstOk, r.quizPts], [2, 20]);
+  // device-only key, outside the synced state
+  assert.strictEqual(K.RESUME_KEY, 'harmona-kids-resume');
+  assert.ok(Object.keys(s).every((k) => !/resume/i.test(k)), 'not inside the synced state');
+});
+
+check('other tab saved: kids progress never goes down (per-key max of r and t)', () => {
+  const mem = fresh();
+  K.finishLesson(mem, LESSONS, 'L01', 4, 4, 40, TS);
+  K.finishLesson(mem, LESSONS, 'L02', 2, 4, 20, TS);
+  // the other tab is stale: it never saw L02, and has an extra drill answer and a mute change
+  const other = fresh();
+  K.finishLesson(other, LESSONS, 'L01', 4, 4, 40, TS);
+  other.stats['iv-count'] = { r: 1, t: 2 };
+  other.mute = true;
+  const raw = JSON.parse(JSON.stringify(other));
+  const m = SM.mergeStored(mem, raw);
+  assert.strictEqual(K.done(m, 'L02'), true, 'L02 kept');
+  assert.deepStrictEqual(m.stats['kids-L02'], mem.stats['kids-L02']);
+  assert.deepStrictEqual(m.stats['iv-count'], { r: 1, t: 2 }, 'other tab progress taken');
+  assert.strictEqual(m.mute, true, 'other tab settings taken');
+  assert.strictEqual(m.points, Math.max(mem.points, other.points));
+  assert.strictEqual(SM.gains(raw, m), true, 'merged copy must be written back');
+  // converges: merging again changes nothing, so two tabs do not ping-pong
+  const again = SM.mergeStored(m, JSON.parse(JSON.stringify(m)));
+  assert.strictEqual(SM.gains(JSON.parse(JSON.stringify(m)), again), false);
+  // r and t each keep their own max
+  assert.deepStrictEqual(SM.maxStats({ a: { r: 3, t: 1 } }, { a: { r: 1, t: 4 } }), { a: { r: 3, t: 4 } });
+  // a deliberate wipe (reset / sign-out) in the other tab is adopted
+  const wiped = SM.mergeStored(mem, { stats: {}, points: 0, log: [], mute: false });
+  assert.deepStrictEqual(wiped.stats, {});
+  // sync meta from another tab is adopted as is (holds both tabs' pending deltas)
+  const meta = SM.readMeta({ uid: 'u1', pending: { 'kids-L03': { r: 1, t: 1 } } });
+  assert.deepStrictEqual(meta, { uid: 'u1', pending: { 'kids-L03': { r: 1, t: 1 } }, reset: false });
+  assert.deepStrictEqual(SM.readMeta(null), { uid: null, pending: {}, reset: false });
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  assert.strictEqual((html.match(/addEventListener\('storage'/g) || []).length, 2, 'storage listeners for state and meta');
+  assert.ok(/HP\.syncMath\.mergeStored\(st, raw\)/.test(html));
+  assert.ok(/reloadMeta\(\);\s*const p = meta\.pending/.test(html), 'onAdd re-reads meta first');
+});
+
+check('service worker ha-v8 precaches sync-math.js', () => {
+  const sw = fs.readFileSync(path.join(__dirname, '..', 'sw.js'), 'utf8');
+  assert.ok(/VERSION = "ha-v8"/.test(sw));
+  assert.ok(sw.includes('"js/sync-math.js"'));
+});
+
 console.log(`\n${passed} kids checks passed`);

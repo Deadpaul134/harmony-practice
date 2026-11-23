@@ -1,7 +1,7 @@
 /* Harmona service worker: versioned app-shell cache for offline; network-first HTML.
    Bump VERSION on every release that changes cached files. */
 "use strict";
-var VERSION = "ha-v7";
+var VERSION = "ha-v8";
 var APP = "ha-app-" + VERSION;
 // piano samples live in their own cache that survives app version bumps;
 // rename it only when the sample files themselves change.
@@ -18,6 +18,7 @@ var FILES = [
   "manifest.webmanifest",
   "css/kids.css",
   "js/game-core.js",
+  "js/sync-math.js",
   "js/piano-sampler.js",
   "js/game-audio.js",
   "js/game-ui.js",

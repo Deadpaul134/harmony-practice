@@ -940,6 +940,7 @@ td.num, td:has(.n) {
 
 
 <script src="js/game-core.js"></script>
+<script src="js/sync-math.js"></script>
 <script src="js/piano-sampler.js"></script>
 <script src="js/game-audio.js"></script>
 <script>
@@ -1452,6 +1453,19 @@ td.num, td:has(.n) {
     EX,
   };
   window.HPDrill = window.__hp;
+  // another tab (or the installed app) saved: take its state before this tab can overwrite it.
+  // Progress never goes down here: stats keep the per-key max of r and t (HP.syncMath.mergeStored).
+  window.addEventListener('storage', e => {
+    if (e.key !== KEY || !e.newValue || !(window.HP && HP.syncMath && HP.core)) return;
+    let raw; try { raw = JSON.parse(e.newValue); } catch (err) { return; }
+    if (!raw || typeof raw !== 'object') return;
+    st = HP.syncMath.mergeStored(st, raw);
+    if (!EX[st.topic]) st.topic = 'intervals';
+    if (![1, 2, 3].includes(st.level)) st.level = 1;
+    if (HP.syncMath.gains(raw, st)) window.__hp.persist();
+    window.__hp.refresh();
+    if (window.HPGame && HPGame.refreshHud) HPGame.refreshHud();
+  });
   renderAll();
   if (window.HPGame) HPGame.init();
 })();
@@ -1487,26 +1501,25 @@ const auth = getAuth(app), db = getFirestore(app);
 
 // meta: which account this browser's progress belongs to, and answers not yet in the cloud
 const MKEY = 'harmony-practice-sync-v1';
+const SM = window.HP.syncMath;
 let meta = { uid: null, pending: {}, reset: false };
-try { const m = JSON.parse(localStorage.getItem(MKEY)); if (m) meta = Object.assign(meta, m); } catch (e) {}
+try { const m = JSON.parse(localStorage.getItem(MKEY)); if (m) meta = SM.readMeta(m); } catch (e) {}
 const saveMeta = () => { try { localStorage.setItem(MKEY, JSON.stringify(meta)); } catch (e) {} };
+// re-read before changing it, so a delta queued by another tab of the same account is kept
+const reloadMeta = () => {
+  try { const m = JSON.parse(localStorage.getItem(MKEY)); if (m && m.uid === meta.uid) meta = SM.readMeta(m); } catch (e) {}
+};
+window.addEventListener('storage', e => {
+  if (e.key !== MKEY || !e.newValue) return;
+  try { const m = JSON.parse(e.newValue); if (m && typeof m === 'object') meta = SM.readMeta(m); } catch (err) {}
+});
 
 let user = null, ref = null, unsub = null, cloud = null, prefsLoaded = false;
 let inflight = null, timer = null, flushing = null, gen = 0;
 
-const add = (a, b, sign = 1) => {
-  const out = JSON.parse(JSON.stringify(a || {}));
-  for (const [id, s] of Object.entries(b || {})) {
-    const o = out[id] || (out[id] = { r: 0, t: 0 });
-    o.r += sign * s.r; o.t += sign * s.t;
-  }
-  return out;
-};
-const unsent = () => inflight ? add(meta.pending, inflight, -1) : meta.pending;
-
 // local view = what the cloud has (incl. writes on their way) + answers not yet sent
 function applyCloud() {
-  hp.st.stats = add(meta.reset || !cloud ? {} : cloud.stats, unsent());
+  hp.st.stats = SM.applyCloud(cloud && cloud.stats, meta.pending, inflight, meta.reset);
   hp.persist();
 }
 
@@ -1578,9 +1591,7 @@ async function doFlush() {
         await setDoc(ref, base, { merge: true });
       } else throw e;
     }
-    if (user && user.uid === uidAtStart && gen === genAtStart) { meta.pending = add(meta.pending, inflight, -1);
-      for (const [id, s] of Object.entries(meta.pending)) if (!s.r && !s.t) delete meta.pending[id];
-      saveMeta(); }
+    if (user && user.uid === uidAtStart && gen === genAtStart) { reloadMeta(); meta.pending = SM.afterSend(meta.pending, inflight); saveMeta(); }
     inflight = null;
   } catch (e) {
     inflight = null;
@@ -1592,6 +1603,7 @@ async function doFlush() {
 // queue a stats increment for the cloud (drill answers and kids lesson progress)
 sync.onAdd = (id, dr, dt) => {
   if (!meta.uid || (!dr && !dt)) return;
+  reloadMeta();
   const p = meta.pending[id] || (meta.pending[id] = { r: 0, t: 0 });
   p.r += dr | 0; p.t += dt | 0;
   saveMeta();
