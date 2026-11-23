@@ -937,10 +937,30 @@ check('other tab saved: kids progress never goes down (per-key max of r and t)',
   assert.ok(/reloadMeta\(\);\s*const p = meta\.pending/.test(html), 'onAdd re-reads meta first');
 });
 
-check('service worker ha-v8 precaches sync-math.js', () => {
+check('service worker ha-v8+ precaches sync-math.js', () => {
   const sw = fs.readFileSync(path.join(__dirname, '..', 'sw.js'), 'utf8');
-  assert.ok(/VERSION = "ha-v8"/.test(sw));
+  { const v = /VERSION = "ha-v(\d+)"/.exec(sw); assert.ok(v && +v[1] >= 8); }
   assert.ok(sw.includes('"js/sync-math.js"'));
+});
+
+check('restore link marks lessons 1..N done once, monotonic, capped, no XP', () => {
+  assert.strictEqual(K.parseRestore('#restore-kids=13', LESSONS), 13);
+  assert.strictEqual(K.parseRestore('#restore-kids=999', LESSONS), LESSONS.length);
+  [null, '', '#home', '#restore-kids=0', '#restore-kids=-3', '#restore-kids=abc', '#restore-kids=13x'].forEach((h) =>
+    assert.strictEqual(K.parseRestore(h, LESSONS), null, String(h)));
+  const st = CORE.migrateState(null);
+  st.stats[K.statId(LESSONS[2].id)] = { r: 3, t: 2 }; // lesson 3 already done with 3 stars
+  const pts = st.points;
+  const d1 = K.restoreUpTo(st, LESSONS, 13);
+  assert.strictEqual(d1.length, 12);
+  assert.strictEqual(st.points, pts);
+  const re = CORE.migrateState(JSON.parse(JSON.stringify(st)));
+  for (let i = 0; i < 13; i++) assert.ok(K.done(re, LESSONS[i].id), 'lesson ' + (i + 1));
+  assert.ok(!K.done(re, LESSONS[13].id));
+  assert.strictEqual(K.nextIndex(re, LESSONS), 13);
+  assert.ok(K.unlocked(re, LESSONS, 13));
+  assert.deepStrictEqual(re.stats[K.statId(LESSONS[2].id)], { r: 3, t: 2 });
+  assert.strictEqual(K.restoreUpTo(re, LESSONS, 13).length, 0); // second run is a no-op
 });
 
 console.log(`\n${passed} kids checks passed`);

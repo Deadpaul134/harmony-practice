@@ -185,5 +185,34 @@
     return { idx: idx, phase: entry.phase, i: i, firstOk: firstOk, quizPts: quizPts, tries: entry.phase === 'quiz' && entry.tries ? 1 : 0 };
   };
 
+  /* One-time progress restore (preview): "#restore-kids=N" marks lessons 1..N done.
+     Monotonic: a lesson already done is left alone; a missing lesson gets t:+1 and at
+     least 1 star. No XP is given (the answers' XP was already saved). Returns the stats
+     deltas so the caller can queue them for sync exactly like a real completion. */
+  K.RESTORE_RE = /^#?restore-kids=(\d{1,3})$/;
+  K.parseRestore = function (hash, lessons) {
+    const m = K.RESTORE_RE.exec(String(hash || ''));
+    if (!m) return null;
+    const n = parseInt(m[1], 10);
+    if (!(n >= 1)) return null;
+    return Math.min(n, lessons.length);
+  };
+  K.restoreUpTo = function (st, lessons, n) {
+    if (!st.stats || typeof st.stats !== 'object') st.stats = {};
+    const count = Math.max(0, Math.min(n | 0, lessons.length));
+    const deltas = [];
+    for (let i = 0; i < count; i++) {
+      const id = lessons[i].id;
+      if (K.done(st, id)) continue;
+      const sid = K.statId(id);
+      const s = st.stats[sid] || (st.stats[sid] = { r: 0, t: 0 });
+      const dr = (s.r | 0) < 1 ? 1 : 0;
+      s.r = (s.r | 0) + dr;
+      s.t = (s.t | 0) + 1;
+      deltas.push({ id: sid, r: dr, t: 1 });
+    }
+    return deltas;
+  };
+
   if (typeof module !== 'undefined' && module.exports) module.exports = K;
 })(typeof window !== 'undefined' ? window : globalThis);

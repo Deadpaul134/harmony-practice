@@ -740,5 +740,27 @@
     if (e.key === 'Escape' && L && document.body.classList.contains('in-lesson')) exitLesson();
   });
 
+  /* one-time restore link: #restore-kids=N (preview) */
+  /* the hash is read when this script loads: game-ui's router rewrites it to #home right after */
+  const restoreHash = location.hash;
+  KU.applyRestore = function (hash) {
+    const n = K.parseRestore(hash, LESSONS);
+    if (n == null) return false;
+    const deltas = K.restoreUpTo(st(), LESSONS, n);
+    const sync = hp().sync;
+    deltas.forEach((d) => { if (sync && sync.onAdd) sync.onAdd(d.id, d.r, d.t); });
+    try { const r = JSON.parse(localStorage.getItem(K.RESUME_KEY)); if (r && LESSONS.findIndex((l) => l.id === r.id) < n) localStorage.removeItem(K.RESUME_KEY); } catch (e) {}
+    save();
+    try { history.replaceState(null, '', location.pathname + location.search + '#home'); } catch (e) { location.hash = '#home'; }
+    if (window.HPGame && HPGame.route) HPGame.route('home'); else KU.renderHome();
+    KU.refresh();
+    toast('ההתקדמות שוחזרה: שיעורים 1 עד ' + n + ' מסומנים כגמורים');
+    return true;
+  };
+  if (K.RESTORE_RE.test(restoreHash)) {
+    const run = () => setTimeout(() => KU.applyRestore(restoreHash), 0);
+    if (document.readyState === 'complete') run(); else window.addEventListener('load', run, { once: true });
+  }
+
   KU._test = { rich, prettyTok };
 })();

@@ -177,9 +177,9 @@ check('decode: promise form and old Safari callback form, errors reject', async 
   ]);
 });
 
-check('service worker: ha-v8, sampler precached, piano runtime cache survives version bumps', () => {
+check('service worker: ha-v8+, sampler precached, piano runtime cache survives version bumps', () => {
   const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
-  assert.ok(/VERSION = "ha-v8"/.test(sw), 'ha-v8');
+  { const v = /VERSION = "ha-v(\d+)"/.exec(sw); assert.ok(v && +v[1] >= 8, 'ha-v8+'); }
   assert.ok(sw.includes('"js/piano-sampler.js"'), 'sampler in app shell');
   assert.ok(/PIANO = "ha-piano-v1"/.test(sw), 'dedicated piano cache');
   assert.ok(/k !== APP && k !== PIANO/.test(sw), 'piano cache kept on activate');
